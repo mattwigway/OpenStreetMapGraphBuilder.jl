@@ -1,0 +1,15 @@
+name = "StreetRouter"
+uuid = "934266ce-e2c2-4961-8b4e-85fa24d5df39"
+authors = ["Matthew Wigginton Bhagat-Conway"]
+
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+Geodesy = "0ef565a4-170c-5f04-8de2-149903a85f3d"
+GraphIO = "aa1b3936-2fda-51b9-ab35-c553d3a640a2"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+MetaGraphs = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
+OpenStreetMapPBF = "32359c53-f983-4442-b913-a1664815e12e"
+ParserCombinator = "fae87a5f-d1ad-5cf0-8f61-c941e1580b46"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
