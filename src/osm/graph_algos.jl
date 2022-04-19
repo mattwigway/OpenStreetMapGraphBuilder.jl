@@ -4,6 +4,13 @@ struct PathState
     at_vertex::Int64
 end
 
+"find all the paths between all vertices in a subgraph"
+# need to flatten twice b/c two levels of iteration over vertices
+find_all_paths(G, vertices) = collect(Iterators.flatten([
+    Iterators.flatten(Iterators.flatten([find_paths(G, [v1], [v2], vertices) for v2 in vertices if v2 != v1] for v1 in vertices)),
+    [[v] for v in vertices]])
+)
+
 "return all acyclic paths from origin nodes to destination nodes"
 function find_paths(g, origins, destinations, vertices)
     q = Queue{PathState}()
@@ -27,7 +34,7 @@ function find_paths(g, origins, destinations, vertices)
         end
 
         for vertex in Graphs.outneighbors(g, from_state.at_vertex)
-              # don't loop, and only traverse a single origin edge (i.e. don't traverse all parts of an origin way) 
+            # don't loop, and only traverse a single origin edge (i.e. don't traverse all parts of an origin way) 
             if (vertex ∈ vertices) && !(vertex in prev_vertices) && !(vertex in origins)
                 next_state = PathState(from_state, vertex)
                 if vertex in destinations

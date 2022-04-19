@@ -1,10 +1,8 @@
-using ParserCombinator, Graphs, GraphIO, GraphIO.GML, StreetRouter
+using ParserCombinator, Graphs, GraphIO, StreetRouter, Serialization
 
-function main()
-    G = StreetRouter.OSM.build_graph(ARGS[1])
-    open(ARGS[2], "w") do str
-        savegraph(str, G, "graph", GraphIO.GML.GMLFormat())
-    end
+function main(args)
+    G = StreetRouter.OSM.build_graph(args[1])
+    serialize(args[2], G)
 end
 
-main()
+main(["/Users/mwbc/Downloads/district-of-columbia-latest.osm.pbf", "dc.srgr"])

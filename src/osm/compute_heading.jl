@@ -31,8 +31,8 @@ end
 
 function bearing_between(ang1, ang2)
     # return the angle betwen ang1 and ang2. will be positive if ang2 is to the right of ang1
-    @assert ang1 >= 0 && ang1 < 360 "invalid ang1 $ang1"
-    @assert ang2 >= 0 && ang2 < 360 "invalid ang2 $ang2"
+    @assert ang1 >= 0 && ang1 <= 360 "invalid ang1 $ang1"
+    @assert ang2 >= 0 && ang2 <= 360 "invalid ang2 $ang2"
     Δhdg = ang2 - ang1
     if Δhdg > 180
         Δhdg -= 360

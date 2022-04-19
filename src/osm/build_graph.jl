@@ -1,4 +1,21 @@
-default_way_filter(w) = haskey(w.tags, "highway")
+function default_way_filter(way::Way)::Bool
+    if !haskey(way.tags, "highway") || !haskey(DEFAULT_FREEFLOW_SPEEDS, way.tags["highway"])
+        return false  # footway etc
+    end
+
+    if haskey(way.tags, "area") && way.tags["area"] == "yes"
+        return false  # driveable area, often coincident with other roads
+    end
+    
+    driveable = true
+    for tag in ("motor_vehicle", "motorcar", "access")
+        if haskey(way.tags, tag) && way.tags[tag] ∈ NON_DRIVABLE_ACCESS
+            driveable = false
+        end
+    end
+
+    return driveable
+end
 
 function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
     # find all nodes that occur in more than one way
@@ -60,6 +77,8 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
         way_segment_names = Vector{String}()
         sizehint!(way_segment_names, n_ways * 2)
     end
+
+    geoms = Vector{Vector{LatLon}}()
 
     scan_ways(osmpbf) do w
         if way_filter(w)
@@ -157,8 +176,9 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
                         traffic_signal,
                         back_traffic_signal,
                         lanes_per_direction,
-                        maxspeed,
-                        accumulated_nodes
+                        ismissing(maxspeed) ? default_speed_for_way(w) : maxspeed,
+                        accumulated_nodes,
+                        get_road_class(w.tags["highway"])
                     )
                     push!(way_segments, ws)
 
@@ -181,6 +201,7 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
                         traffic_signal = 0
                         back_traffic_signal = 0
                         accumulated_nodes = Vector{Int64}()
+                        push!(accumulated_nodes, this_node)
                     end
                 end
             end
@@ -217,7 +238,8 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
                 ws.traffic_signal,
                 ws.lanes,
                 ws.speed_kmh,
-                reverse(ws.nodes)
+                reverse(ws.nodes),
+                ws.class
             )
 
             push!(new_way_segments, back)
@@ -252,8 +274,13 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
         # set the location of this way segment vertex to be the start of the way - used for snapping
         # in snapping, we will still be able to snap to the end of a cul-de-sac because of the back edge,
         # unless it is a one-way cul-de-sac... cf. https://github.com/conveyal/r5/blob/dev/src/main/java/com/conveyal/r5/streets/TarjanIslandPruner.java
-        set_prop!(G, srcidx, :geom, node_geom[way_segment.origin_node])
-
+        set_prop!(G, srcidx, :geom, collect(map(nid -> node_geom[nid], way_segment.nodes)))
+        set_prop!(G, srcidx, :from_node, way_segment.nodes[1])
+        set_prop!(G, srcidx, :to_node, way_segment.nodes[end])
+        set_prop!(G, srcidx, :way, way_segment.way_id)
+        set_prop!(G, srcidx, :heading_start, way_segment.heading_start)
+        set_prop!(G, srcidx, :heading_end, way_segment.heading_end)
+        
         # find all of the way segments this way segment is connected to
         for tgtidx in way_segments_by_start_node[way_segment.destination_node]
             # figure out if this is a straight-on or turn action
@@ -283,8 +310,12 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
             set_prop!(G, srcidx, tgtidx, :speed_kmh, way_segment.speed_kmh)
             set_prop!(G, srcidx, tgtidx, :lanes, way_segment.lanes)
             set_prop!(G, srcidx, tgtidx, :oneway, way_segment.oneway)
+            set_prop!(G, srcidx, tgtidx, :this_class, way_segment.class)
+            set_prop!(G, srcidx, tgtidx, :next_class, tgtseg.class)
         end
     end
+
+    process_turn_restrictions(osmpbf, G)
 
     return G
 end

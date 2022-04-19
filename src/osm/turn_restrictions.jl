@@ -337,4 +337,280 @@ function apply_turn_restrictions!(G, turn_restrictions)
             push!(complex_restrictions, restriction)
         end
     end
+
+    # complex restrictions are, well, complex.
+    # to represent a a -> b+ -> c restriction,
+    # we remove all the middle ways (b) from the graph, and connect up all the
+    # allowed movements from a to c and anything else that touched b. i.e.
+    # we remove the vertex b, and bypass it where allowed. Where this gets really
+    # tricky is if they overlap - i.e. you have a turn restriction that
+    # starts or ends inside another one. So what we do is first sort turn restrictions
+    # into turn restriction "systems" - sets of overlapping turn restrictions. Then we
+    # use a DFS to find all paths from every vertex to every other vertex. Then we remove the ones
+    # forbidden by the restriction, and add the others back to the graph.
+
+    # first, sort restrictions into systems
+    # system_for_vertex = Dict{Int64, Vector{TurnRestriction}}()
+    # for restric in complex_restrictions
+    #     system = Vector{TurnRestriction}()
+    #     push!(system, restric)
+    #     for v in restric.segments
+    #         if haskey(system_for_vertex, v)
+    #             @info "restriction $(restric.osm_id) is part of a complex restriction"  
+    #             ex_system = system_for_vertex[v]
+    #             push!.(Ref(system), ex_system)
+    #         end
+    #         # this might be a merged system or just the one we created above
+    #         # it will be modified in-place as we discover more system members
+    #     end
+
+    #     system_vertices = Set(collect(Iterators.flatten(map(r -> r.segments, system))))
+
+    #     # now, we need to merge systems which have only a single edge between them, as they will break routing
+    #     # otherwise. Consider the following graph:
+    #     #        |      |        |       |
+    #     #   -----+------a========b-------+--------
+    #     #        |No U turn     No U turn|
+    #     #   -----+--+--+--+------+-------+--------
+    #     #        |  |  |  |      |       |
+    #     # at this point in the code, we would have two systems here - one for each U turn.
+    #     # between the two systems, we have a single (highlighted) edge from a to b. However,
+    #     # in the system on the left, a will be replaced by a set of vertices for each turning
+    #     # movement, all connected to b. The same will happen in the right, with b replaced by
+    #     # a set of vertices all connected to a. However, since a and b are no longer a part of
+    #     # the routable graph (their edges are removed), we can no longer route from a to b.
+    #     # in this case, we merge the systems together.
+    #     # neighboring_systems = Set{Vector{TurnRestriction}}()
+    #     # for r2 in system
+    #     #     for v in r2.segments
+    #     #         for nbr in neighbors(G, v)
+    #     #             if nbr ∉ system_vertices && haskey(system_for_vertex, nbr)
+    #     #                 push!(neighboring_systems, system_for_vertex[nbr])  # neighboring_systems is a set, no need to check for dupes
+    #     #             end
+    #     #         end
+    #     #     end
+    #     # end
+
+    #     # for nbrsys in neighboring_systems
+    #     #     push!.(Ref(system), nbrsys)
+    #     # end
+
+    #     # now, the entire (potentially merged) system should be updated with all constituent vertices
+    #     for r2 in system
+    #         for v in r2.segments
+    #             system_for_vertex[v] = system
+    #         end
+    #     end
+    # end
+    
+    restriction_for_vertex = Dict{Int64, Vector{TurnRestriction}}()
+    for restric in complex_restrictions
+        for v in restric.segments
+            if haskey(restriction_for_vertex, v)
+                push!(restriction_for_vertex[v], restric)
+            else
+                restriction_for_vertex[v] = [restric]
+            end
+        end
+    end
+
+    # now, compile them into systems
+    processed_restrictions = Set{TurnRestriction}()
+    systems = Vector{Vector{TurnRestriction}}()
+
+    restric_queue = Queue{TurnRestriction}()
+    for start in complex_restrictions
+        if start ∉ processed_restrictions
+            system = Set{TurnRestriction}()
+
+            @assert isempty(restric_queue)
+            enqueue!(restric_queue, start)
+            while !isempty(restric_queue)
+                # pop a restriction off the queue
+                restric = dequeue!(restric_queue)
+                # add it to the system
+                push!(system, restric)
+                # and mark it as processed
+                push!(processed_restrictions, restric)
+
+                for v in restric.segments
+                    # should always be in restriction_for_vertex
+                    for r2 in restriction_for_vertex[v]
+                        if r2 ∉ system && r2 ∉ restric_queue
+                            # this is a connected turn restriction not yet in the system
+                            enqueue!(restric_queue, r2)
+                        end
+                    end
+
+                    # also check neighbors.
+                    # Consider the following graph:
+                    #        |      |        |       |
+                    #   -----+------a========b-------+--------
+                    #        |No U turn     No U turn|
+                    #   -----+--+--+--+------+-------+--------
+                    #        |  |  |  |      |       |
+                    # at this point in the code, we would have two systems here - one for each U turn.
+                    # between the two systems, we have a single (highlighted) edge from a to b. However,
+                    # in the system on the left, a will be replaced by a set of vertices for each turning
+                    # movement, all connected to b. The same will happen in the right, with b replaced by
+                    # a set of vertices all connected to a. However, since a and b are no longer a part of
+                    # the routable graph (their edges are removed), we can no longer route from a to b.
+                    # in this case, we merge the systems together.
+                    for nbr in all_neighbors(G, v)
+                        # neighbors might not be in restrictions_for_vertex
+                        if haskey(restriction_for_vertex, nbr)
+                            for r2 in restriction_for_vertex[nbr]
+                                if r2 ∉ system && r2 ∉ restric_queue
+                                    enqueue!(restric_queue, r2)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+            push!(systems, collect(system))
+        end
+    end
+
+    @info "$(length(complex_restrictions)) complex restrictions become $(length(systems)) turn restriction systems"
+
+    # now, apply the restriction
+    # to do this, we find all possible paths through the system, then remove all the edges in the system and
+    # add edges for each of the allowed turns. We don't remove any vertices to avoid changing vertex indices.
+    # since weighting happens later, and we want to  properly account for turn costs, we don't add a single edge to
+    # represent the complex turn, but rather the same number of edges as we started with. We add vertices between these
+    # that are duplicates of the original vertices, but only connected as part of a single turn. We mark them
+    # as being part of a complex turn, so they can be visualized without all being on top of each other in the visualizer.
+
+    complex_restriction_idx = 1
+
+    for (system_idx, system) in enumerate(systems)
+        # first, find all paths in the system
+        # we need to find _all_ paths, even if they start in the middle of the system. We will reconnect to external
+        # vertices not in the system when we reconstruct this part of the graph.
+        restricted_paths = collect(map(x -> x.segments, system))
+        system_vertices = Set{Int64}(Iterators.flatten(restricted_paths))
+
+        # find all vertices that are entrances or exits to the system - i.e. are just outside
+        access_vertices = Set(Iterators.flatten(map(v -> filter(n -> n ∉ system_vertices, inneighbors(G, v)), collect(system_vertices))))
+        egress_vertices = Set(Iterators.flatten(map(v -> filter(n -> n ∉ system_vertices, outneighbors(G, v)), collect(system_vertices))))
+
+        for v1 in access_vertices
+            for v2 in egress_vertices
+                # figure out if there are non-restricted paths between these vertices through the system
+                # TODO should we find only a single shortest path? Could become problematic
+                # in assignment if the shortest path changes
+                paths = find_paths(G, [v1], [v2], Set([system_vertices..., v1, v2]))
+
+                # remove restricted paths
+                filter!(paths) do p
+                    if all(p .∉ Ref(system_vertices))
+                        return false # these vertices are directly connected without passing through system
+                    end
+
+                    for r in restricted_paths
+                        for offset in 1:(length(p) - length(r) + 1)
+                            if (@view p[offset:(offset + length(r) - 1)]) == r
+                                return false
+                            end
+                        end
+                    end
+                    return true
+                end
+
+                # add paths
+                for path in paths
+                    # first and last element of path stay in graph
+                    new_vertices = [
+                        path[1],
+                        map(path[2:end - 1]) do v
+                            add_vertex!(G, copy(props(G, v)))
+                            vn = nv(G)
+                            set_prop!(G, vn, :complex_restriction_idx, complex_restriction_idx)
+                            set_prop!(G, vn, :system_idx, system_idx)
+                            vn
+                        end...,
+                        path[end]
+                    ]
+
+                    # add the edges
+                    for (i1, i2) in zip(1:(length(path) - 1), 2:length(path))
+                        @assert add_edge!(G, new_vertices[i1], new_vertices[i2], copy(props(G, path[i1], path[i2])))
+                    end
+
+                    complex_restriction_idx += 1
+                end
+            end
+        end
+
+        # all_paths = find_all_paths(G, system_vertices)
+        # n_paths = length(all_paths)
+        # filter!(all_paths) do p
+        #     for r in restricted_paths
+        #         for offset in 1:(length(p) - length(r) + 1)
+        #             if (@view p[offset:(offset + length(r) - 1)]) == r
+        #                 return false
+        #             end
+        #         end
+        #     end
+
+        #     # only add the path if the ends are connected to something external to the system
+        #     for nbr in Iterators.flatten([inneighbors(G, p[1]), outneighbors(G, p[end])])
+        #         if nbr ∉ system_vertices
+        #             # this vertex is an interface point to the outside world
+        #             # need to keep this path
+        #             return true
+        #         end
+        #     end
+
+        #     return false
+        # end
+
+
+        # for path in all_paths
+        #     # create the edges
+        #     prev_v = nothing
+        #     prev_newv = nothing
+        #     for v in path
+        #         add_vertex!(G, copy(props(G, v)))
+        #         newv = nv(G)
+        #         set_prop!(G, newv, :complex_restriction_idx, complex_restriction_idx)
+        #         set_prop!(G, newv, :system_idx, system_idx)
+
+        #         # connect vertex to any external to system neighbors
+        #         for nbr in inneighbors(G, v)
+        #             if nbr ∉ system_vertices
+        #                 add_edge!(G, nbr, newv, copy(props(G, nbr, v)))
+        #             end
+        #         end
+
+        #         for nbr in outneighbors(G, v)
+        #             if nbr ∉ system_vertices
+        #                 add_edge!(G, newv, nbr, copy(props(G, v, nbr)))
+        #             end
+        #         end
+
+        #         # add edges between vertices on this turn
+        #         if !isnothing(prev_v)
+        #             add_edge!(G, prev_newv, newv, copy(props(G, prev_v, v)))
+        #         end
+
+        #         prev_v = v
+        #         prev_newv = newv
+        #     end
+        #     complex_restriction_idx += 1
+        # end
+
+        # remove all edges from original system vertices
+        for v in system_vertices
+            for nbr in inneighbors(G, v)
+                @assert rem_edge!(G, nbr, v)
+            end
+
+            for nbr in outneighbors(G, v)
+                @assert rem_edge!(G, v, nbr)
+            end
+        end
+    end
 end

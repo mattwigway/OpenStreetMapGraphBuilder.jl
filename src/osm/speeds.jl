@@ -62,4 +62,8 @@ const DEFAULT_FREEFLOW_SPEEDS = Dict{String, Float64}(
     "road" => DEFAULT_SPEED
 )
 
-default_speed_for_way(way) = haskey(way.tags, "highway") ? getindex(DEFAULT_FREEFLOW_SPEEDS, way.tags["highway"]::String, DEFAULT_SPEED) : DEFAULT_SPEED
+# leaving private and permissive as some people live on private streets
+# removing "customers" to avoid shortcuts through parking lots
+const NON_DRIVABLE_ACCESS = Set(["no", "agricultural", "forestry", "agricultural;forestry", "forestry;agricultural", "delivery", "customers"])
+
+default_speed_for_way(way) = haskey(way.tags, "highway") && haskey(DEFAULT_FREEFLOW_SPEEDS, way.tags["highway"]) ? getindex(DEFAULT_FREEFLOW_SPEEDS, way.tags["highway"]::String) : DEFAULT_SPEED
