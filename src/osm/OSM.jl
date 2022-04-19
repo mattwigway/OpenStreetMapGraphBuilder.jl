@@ -6,6 +6,7 @@ include("osm_types.jl")
 include("compute_heading.jl")
 include("graph_algos.jl")
 include("turn_restrictions.jl")
+include("island_removal.jl")
 include("build_graph.jl")
 
 end

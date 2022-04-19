@@ -280,7 +280,7 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
         set_prop!(G, srcidx, :way, way_segment.way_id)
         set_prop!(G, srcidx, :heading_start, way_segment.heading_start)
         set_prop!(G, srcidx, :heading_end, way_segment.heading_end)
-        
+
         # find all of the way segments this way segment is connected to
         for tgtidx in way_segments_by_start_node[way_segment.destination_node]
             # figure out if this is a straight-on or turn action
@@ -316,6 +316,7 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
     end
 
     process_turn_restrictions(osmpbf, G)
+    remove_islands_smaller_than(G, 100)
 
     return G
 end

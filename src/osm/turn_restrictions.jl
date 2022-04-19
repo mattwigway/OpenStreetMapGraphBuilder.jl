@@ -604,13 +604,15 @@ function apply_turn_restrictions!(G, turn_restrictions)
 
         # remove all edges from original system vertices
         for v in system_vertices
-            for nbr in inneighbors(G, v)
+            for nbr in copy(inneighbors(G, v))
                 @assert rem_edge!(G, nbr, v)
             end
 
-            for nbr in outneighbors(G, v)
+            for nbr in copy(outneighbors(G, v))
                 @assert rem_edge!(G, v, nbr)
             end
         end
     end
+
+
 end
