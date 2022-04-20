@@ -1,4 +1,5 @@
 # Remove islands from a graph
+using DelimitedFiles
 
 function remove_islands_smaller_than(G, island_size)
     to_remove = Vector{Int64}()
@@ -16,6 +17,8 @@ function remove_islands_smaller_than(G, island_size)
     for v in to_remove
         @assert rem_vertex!(G, v)
     end
+
+    writedlm("removed_vertices.txt", [to_remove], ',')
 
     @info "removed $n_removed components with less than $island_size vertices"
 end

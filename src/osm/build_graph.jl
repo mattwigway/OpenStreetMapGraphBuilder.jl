@@ -17,7 +17,7 @@ function default_way_filter(way::Way)::Bool
     return driveable
 end
 
-function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
+function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, remove_islands=0)
     # find all nodes that occur in more than one way
     node_count = counter(Int64)
 
@@ -104,6 +104,11 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
                     # as some ways are oneway for cars but two-way for bikes etc.
                     reverse!(w.nodes)
                 end
+            end
+
+            # implied one way
+            if w.tags["highway"] == "motorway" || haskey(w.tags, "junction") && w.tags["junction"] ∈ Set(["roundabout", "rotary", "traffic_circle"])
+                #oneway = true
             end
 
             if haskey(w.tags, "name")
@@ -288,7 +293,13 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
             tgtseg = way_segments[tgtidx]
 
             # handle implied no u turn in certain places
-            if tgtseg.way_id == way_segment.way_id && tgtseg.origin_node == way_segment.destination_node && tgtseg.destination_node == way_segment.origin_node
+            # can't just look at start and end nodes - imagine a loop street with two segmetns that looks like this:
+            #    ______________________
+            #   /                      \
+            #  +                        +
+            #   \______________________/
+            # That's not a U turn, but would look like one if we weren't careful.
+            if tgtseg.way_id == way_segment.way_id && tgtseg.nodes == reverse(way_segment.nodes)
                 # this is a u turn
                 # get the other segments in this location
                 other_segments = filter(x -> x!=tgtidx, connected_segments)
@@ -329,7 +340,9 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
     end
 
     process_turn_restrictions(osmpbf, G)
-    remove_islands_smaller_than(G, 100)
+    if remove_islands > 0
+        remove_islands_smaller_than(G, remove_islands)
+    end
 
     return G
 end
