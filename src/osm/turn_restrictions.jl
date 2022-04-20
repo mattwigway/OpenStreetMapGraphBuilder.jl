@@ -169,7 +169,8 @@ function process_simple_restriction(restric, from, to, via, G, vertices_for_way)
     matching_turns = filter(reshape(collect(Base.product(origin_candidates, destination_candidates)), :)) do (fr, to)
         # check that these connect at the via node
         (get_prop(G, fr, :to_node) == via.id) &&
-        (get_prop(G, to, :from_node) == via.id)
+        (get_prop(G, to, :from_node) == via.id) &&
+        has_edge(G, fr, to)  # in case it's already been removed by an implied no u-turn restriction
     end |> collect
 
     rtype = get_rtype(restric)

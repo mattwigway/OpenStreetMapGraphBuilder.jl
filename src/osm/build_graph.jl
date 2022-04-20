@@ -282,9 +282,22 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true)
         set_prop!(G, srcidx, :heading_end, way_segment.heading_end)
 
         # find all of the way segments this way segment is connected to
-        for tgtidx in way_segments_by_start_node[way_segment.destination_node]
+        connected_segments = way_segments_by_start_node[way_segment.destination_node]
+        for tgtidx in connected_segments
             # figure out if this is a straight-on or turn action
             tgtseg = way_segments[tgtidx]
+
+            # handle implied no u turn in certain places
+            if tgtseg.way_id == way_segment.way_id && tgtseg.origin_node == way_segment.destination_node && tgtseg.destination_node == way_segment.origin_node
+                # this is a u turn
+                # get the other segments in this location
+                other_segments = filter(x -> x!=tgtidx, connected_segments)
+                if length(other_segments) == 1
+                    # only one other segment, this is a node in the middle of a road, not at an intersection
+                    # do allow u turns if there are 0 other segments, i.e. at the ends of cul-de-sacs
+                    continue
+                end
+            end
 
             Δhdg = bearing_between(way_segment.heading_end, tgtseg.heading_start)
 
