@@ -108,7 +108,7 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
 
             # implied one way
             if w.tags["highway"] == "motorway" || haskey(w.tags, "junction") && w.tags["junction"] ∈ Set(["roundabout", "rotary", "traffic_circle"])
-                #oneway = true
+                oneway = true
             end
 
             if haskey(w.tags, "name")
