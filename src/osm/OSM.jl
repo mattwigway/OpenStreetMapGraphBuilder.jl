@@ -7,6 +7,7 @@ include("compute_heading.jl")
 include("graph_algos.jl")
 include("turn_restrictions.jl")
 include("island_removal.jl")
+include("only_turn.jl")
 include("build_graph.jl")
 
 end

@@ -108,9 +108,9 @@ function process_turn_restrictions(infile, G)
                 if !isnothing(parsed)
                     if startswith(rtype, "no_")
                         push!(turn_restrictions, parsed)
-                    # elseif startswith(rtype, "only_")
-                    #     restrictions = convert_restriction_to_only_turn(parsed, G)
-                    #     append!(turn_restrictions, restrictions)
+                    elseif startswith(rtype, "only_")
+                        restrictions = convert_restriction_to_only_turn(G, parsed)
+                        append!(turn_restrictions, restrictions)
                     else
                         @error "Skipping turn restriction of type $rtype"
                     end

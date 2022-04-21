@@ -17,7 +17,7 @@ function default_way_filter(way::Way)::Bool
     return driveable
 end
 
-function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, remove_islands=0)
+function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, remove_islands=100)
     # find all nodes that occur in more than one way
     node_count = counter(Int64)
 

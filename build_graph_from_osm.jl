@@ -5,4 +5,4 @@ function main(args)
     serialize(args[2], G)
 end
 
-main(["/Users/mwbc/Downloads/district-of-columbia-latest.osm.pbf", "dc.srgr"])
+main(ARGS)
