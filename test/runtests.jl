@@ -1,8 +1,14 @@
 using Test, StreetRouter, Graphs, MetaGraphs
 
-get_graph() = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"))
+function get_graph() 
+    G = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"))
+    StreetRouter.compute_freeflow_weights!(G)
+    G
+end 
 
-vertices_for_node(G, node) = filter(v -> get_prop(G, v, :from_node) == node, 1:nv(G))
+vertices_for_node(G, node::Int64) = filter(v -> get_prop(G, v, :from_node) == node, 1:nv(G))
+# allow passing (fr, to) tuple to get a specific direction of a specific node
+vertices_for_node(G, node::Tuple{Int64, Int64}) = filter(v -> get_prop(G, v, :from_node) == node[1] && get_prop(G, v, :to_node) == node[2], 1:nv(G))
 
 function get_path(G, fr_node, to_node)
     # find vertices for nodes
