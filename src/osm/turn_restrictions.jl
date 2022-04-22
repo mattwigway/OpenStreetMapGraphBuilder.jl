@@ -284,9 +284,26 @@ function process_complex_restriction(restric, G, vertices_for_way)
             return TurnRestriction(candidate_paths[1], restric.id)
 
         elseif length(filtered_paths) > 1
-            @warn "Restriction $(restric.id) of type $(rtype) is ambiguous, skipping. \nPossible restrictions\n" *
-                join(summarize_restriction.(Ref(G), filtered_paths), "\n")
-            return nothing
+            # This can happen if there's multiple ways to use the via way by overshooting and turning around.
+            # e.g. in the traffic garden example, we have this:
+            #    JT Hwy
+            #    |   |
+            #    |🚫U|
+            # +--+---+----Beavertail----+
+            #                           | Succulent
+            #
+            # The actual restriction is SB to NB JT Hwy via U-turn at Beavertail, but since
+            # Beavertail is all one way, could also be interpreted as JT Hwy SB - left at bevaertail, U at Succulent, right at JT Hwy.
+            # The right answer is pretty clear here. Use the shortest restriction possible as measured by number of vertices.
+            rlength = collect(map(length, filtered_paths))
+            shortest_restric = minimum(rlength)
+            if sum(rlength .== shortest_restric) ≥ 2
+                @warn "Restriction $(restric.id) of type $(rtype) is ambiguous, skipping; multiple possible restrictions have length $shortest_restric. \nPossible restrictions\n" *
+                    join(summarize_restriction.(Ref(G), filtered_paths[rlength .== shortest_restric]), "\n")
+                return nothing
+            else
+                return TurnRestriction(filtered_paths[argmin(rlength)], restric.id)
+            end
         elseif length(filtered_paths) == 0
             @error "No matching restriction for $rtype, for restriction $(restric.id)"
             return nothing
