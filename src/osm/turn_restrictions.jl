@@ -183,7 +183,7 @@ function process_simple_restriction(restric, from, to, via, G, vertices_for_way)
         return TurnRestriction([matching_turns[1]...], restric.id)
     else
         # filter by turn type
-        filter!((fr, to) -> is_turn_type(get_prop(G, fr, to, :turn_angle), rtype), matching_turns)
+        filter!(t -> is_turn_type(get_prop(G, t[1], t[2], :turn_angle), rtype), matching_turns)
         if length(matching_turns) == 1
             return TurnRestriction([matching_turns[1]...], restric.id)
         elseif isempty(matching_turns)
