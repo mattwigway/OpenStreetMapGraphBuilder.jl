@@ -50,10 +50,10 @@ function compute_freeflow_weight(G, edge)
 
         if turn_angle >= 0
             # copied directly from lua code, I don't understand the math, it's a sigmoid of some sort
-            # 10 converts decaseconds to seconds
-            turn_cost += 10 * TURN_PENALTY / (1 + exp( -((13 / TURN_BIAS) *  turn_angle/180 - 6.5*TURN_BIAS)))
+            # car.lua is confusing, but these values are actually in seconds
+            turn_cost += TURN_PENALTY / (1 + exp( -((13 / TURN_BIAS) *  turn_angle/180 - 6.5*TURN_BIAS)))
         else
-            turn_cost += 10 * TURN_PENALTY / (1 + exp( -((13 * TURN_BIAS) * -turn_angle/180 - 6.5/TURN_BIAS)))
+            turn_cost += TURN_PENALTY / (1 + exp( -((13 * TURN_BIAS) * -turn_angle/180 - 6.5/TURN_BIAS)))
         end
     end
 
