@@ -35,5 +35,6 @@ end
 
 const G = get_graph()
 
+include("test_graph_algos.jl")
 include("test_basic.jl")
 include("test_restric.jl")
