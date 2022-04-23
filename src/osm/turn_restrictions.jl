@@ -125,7 +125,7 @@ function process_turn_restrictions(infile, G)
         @warn "Ignored $n_wildcard no_entry or no_exit restrictions"
     end 
 
-    apply_turn_restrictions!(G, turn_restrictions)
+    apply_turn_restrictions!(G, turn_restrictions, vertices_for_way)
 end
 
 function process_simple_restriction(restric, from, to, via, G, vertices_for_way)
@@ -333,7 +333,7 @@ function is_turn_type(bearing, type)
     return false # not in any target range
 end
 
-function apply_turn_restrictions!(G, turn_restrictions)
+function apply_turn_restrictions!(G, turn_restrictions, vertices_for_way)
     # first, apply all simple turn restrictions (no via ways), and
     # accumulate complex turn restrictions for later
 
@@ -423,7 +423,7 @@ function apply_turn_restrictions!(G, turn_restrictions)
     
     restriction_for_vertex = Dict{Int64, Vector{TurnRestriction}}()
     for restric in complex_restrictions
-        for v in restric.segments
+        for v in expand_with_back_vertices(G, restric.segments, vertices_for_way)
             if haskey(restriction_for_vertex, v)
                 push!(restriction_for_vertex[v], restric)
             else
@@ -508,7 +508,7 @@ function apply_turn_restrictions!(G, turn_restrictions)
         # we need to find _all_ paths, even if they start in the middle of the system. We will reconnect to external
         # vertices not in the system when we reconstruct this part of the graph.
         restricted_paths = collect(map(x -> x.segments, system))
-        system_vertices = Set{Int64}(Iterators.flatten(restricted_paths))
+        system_vertices = expand_with_back_vertices(G, Iterators.flatten(restricted_paths), vertices_for_way)
 
         # find all vertices that are entrances or exits to the system - i.e. are just outside
         access_vertices = Set(Iterators.flatten(map(v -> filter(n -> n ∉ system_vertices, inneighbors(G, v)), collect(system_vertices))))
@@ -633,4 +633,26 @@ function apply_turn_restrictions!(G, turn_restrictions)
     end
 
 
+end
+
+
+# When considering complex restrictions, we need to avoid having back edges that are
+# not part of the restriction. Otherwise, situations like this could be allowed
+#
+#  ↓   ⬆
+#  ↘→↘ ⬆
+#  ↙⬅↙⬆
+#  ↘➡➡↗
+# This expands a list of vertices with all back vertices
+function expand_with_back_vertices(G, vertices, vertices_for_way)
+    output = Set{Int64}()
+    for v in vertices
+        push!(output, v)
+        for v2 in vertices_for_way[get_prop(G, v, :way)]
+            if get_prop(G, v2, :nodes) == reverse(get_prop(G, v, :nodes))
+                push!(output, v2)
+            end
+        end
+    end
+    return output
 end

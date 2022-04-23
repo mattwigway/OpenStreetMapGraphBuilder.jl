@@ -285,6 +285,7 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
         set_prop!(G, srcidx, :geom, collect(map(nid -> node_geom[nid], way_segment.nodes)))
         set_prop!(G, srcidx, :from_node, way_segment.nodes[1])
         set_prop!(G, srcidx, :to_node, way_segment.nodes[end])
+        set_prop!(G, srcidx, :nodes, way_segment.nodes)
         set_prop!(G, srcidx, :way, way_segment.way_id)
         set_prop!(G, srcidx, :heading_start, way_segment.heading_start)
         set_prop!(G, srcidx, :heading_end, way_segment.heading_end)
