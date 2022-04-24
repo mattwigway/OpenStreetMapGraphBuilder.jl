@@ -1,16 +1,78 @@
 # implied turn restrictions should be in both turn restrictions and no turn restrictions graphs
 @testset "Implied restrictions" for gr in [G, N]
-    # Make sure the implied no U turn is applied at the traffic light on Wash Trl
-    fr_v = findfirst(v -> get_prop(gr, v, :from_node) == 102042 && get_prop(gr, v, :to_node) == 102044, 1:nv(G))
-    to_v = findfirst(v -> get_prop(gr, v, :from_node) == 102044 && get_prop(gr, v, :to_node) == 102042, 1:nv(G))
+    @testset "No U turn at non-intersection" begin
+        # Make sure the implied no U turn is applied at the traffic light on Wash Trl
+        fr_v = findfirst(v -> get_prop(gr, v, :from_node) == 102042 && get_prop(gr, v, :to_node) == 102044, 1:nv(G))
+        to_v = findfirst(v -> get_prop(gr, v, :from_node) == 102044 && get_prop(gr, v, :to_node) == 102042, 1:nv(G))
 
-    paths = dijkstra_shortest_paths(gr, fr_v)
+        paths = dijkstra_shortest_paths(gr, fr_v)
 
-    @test paths.parents[to_v] != fr_v
+        @test paths.parents[to_v] != fr_v
 
-    # make sure it is not applied in other places - U turn at Succulent Way is legal
-    paths = dijkstra_shortest_paths(gr, to_v)
-    @test paths.parents[fr_v] == to_v
+        # make sure it is not applied in other places - U turn at Succulent Way is legal
+        paths = dijkstra_shortest_paths(gr, to_v)
+        @test paths.parents[fr_v] == to_v
+    end
+
+    @testset "No U turn at wrong-way one-way" begin
+        @test get_path(gr, (102095, 101956), 101906) == [
+            102095, # Beavertail at Succulent
+            101956, # Beavertail at NB JT Hwy (u turn against traffic)
+            101936, # SB JT Hwy, can U turn here
+            101956,
+            102095,
+            102104,
+            101906
+        ]
+    end
+
+    @testset "Can make U turn at one-way tee" begin
+        # test that if there is a one-way road going off to the right, you can still make a U turn
+        @test get_path(gr, (101794, 101795), 101793) == [
+            101794, # Saguaro at Cactus
+            101795, # Saguaro at Cholla
+            101794,
+            101793  # End Saguaro
+        ]
+    end
+
+    @testset "Can make U turn at begin one way" begin
+        # If a street becomes one way, we should be able to make a U turn assuming it's
+        # an intersection, even if the rightmost way out of the node is the one-way street
+        @test get_path(gr, (7101960, 7101961), 7101949) == [
+            7101960, # Scorpion/Rattlesnake
+            7101961, # U turn at Jackrabbit
+            7101960,
+            7101949 # Rattlesnake @ JT Hwy
+        ]
+    end
+
+    @testset "Can make U turn at right-direction one-way tee" begin
+        # If a street tees into a right to left one way, should still be able to U turn with traffic
+        @test get_path(gr, (7101960, 7101942), 7101949) == [
+            7101960, # Scorpion/Rattlesnake
+            7101942, # U turn at Cholla
+            7101960,
+            7101949 # Rattlesnake @ JT Hwy
+        ]
+    end
+
+    @testset "Cannot make U turn at wrong-direction one-way tee" begin
+        @test get_path(gr, (7101960, 7101949), 7101942) == [
+            7101960, # Rattlesnake/Scorpion
+            7101949, # JT Hwy
+            101934,  # JT Hwy downgrade to single carriageway
+            101896,  # JT Hwy/Cactus
+            101897,  # Cactus @ Cholla
+            101794,  # Cactus @ Saguaro
+            101795,  # Saguaro @ Cholla
+            7101965, # Cholla/Jackrabbit
+            7101940, # Cholla/Oasis
+            7101942  # Cholla/Rattlesnake
+
+        ]
+    end
+
 end
 
 @testset "Simple restrictions" begin
@@ -56,7 +118,9 @@ end
         @test get_path(G, 102177, 102097) == [
             102177, # Succulent at Tropical Island (should remain in graph, island removal does not remove vertices)
             102095, # Succulent @ Beavertail - only right turn (can't go straight)
-            101956, # Beavertail @ JT Hwy, U turn # TODO should U-turn here be disallowed since it's against the direction of traffic on the crossing street?
+            101956, # Beavertail @ JT Hwy, no u turn against traffic
+            101936, # U turn
+            101956,
             102095, # Beavertail @ Succulent
             102097  # Succulent at Prickly Pear
         ]

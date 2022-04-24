@@ -17,7 +17,7 @@ function default_way_filter(way::Way)::Bool
     return driveable
 end
 
-function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, remove_islands=100, turn_restrictions=true)
+function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, remove_islands=100, turn_restrictions=true, drive_on_right=true)
     # find all nodes that occur in more than one way
     node_count = counter(Int64)
 
@@ -268,10 +268,11 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
     end
 
     @info "reindexing segments for edge-based graph construction"
-    way_segments_by_end_node = nothing  # should not be used anymore
+    empty!(way_segments_by_end_node)
     empty!(way_segments_by_start_node)
     for (wsidx, ws) in enumerate(way_segments)
         push!(way_segments_by_start_node[ws.origin_node], wsidx)
+        push!(way_segments_by_end_node[ws.destination_node], wsidx)
     end
 
     @info "creating edge-based graph"
@@ -308,10 +309,30 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
                 # this is a u turn
                 # get the other segments in this location
                 other_segments = filter(x -> x!=tgtidx, connected_segments)
-                if length(other_segments) == 1
+                if length(other_segments) == 1 &&
+                    # avoid forbidding a U turn at a T intersection with a one-way street by ensuring there are no incoming edges here that
+                    # do not match the found segments
+                    all(map(x -> way_segments[x].nodes == way_segment.nodes || way_segments[x].nodes == reverse(way_segments[other_segments[1]].nodes), way_segments_by_end_node[way_segment.destination_node]))
                     # only one other segment, this is a node in the middle of a road, not at an intersection
                     # do allow u turns if there are 0 other segments, i.e. at the ends of cul-de-sacs
                     continue
+                end
+
+                if length(other_segments) ≤ 2 && !isempty(other_segments)
+                    # don't allow U turn if it would go against traffic flow on a one-way
+                    sort!(other_segments, by=s -> bearing_between(way_segment.heading_end, way_segments[s].heading_start))
+                    in_segments = way_segments_by_end_node[way_segment.destination_node]
+
+                    out_seg = way_segments[other_segments[drive_on_right ? end : 1]]
+                    oneway_in_seg_headings = map(ws -> ws.heading_end, filter(ws -> ws.oneway, map(s -> way_segments[s], in_segments)))
+                    if out_seg.oneway && 
+                        # out_seg is a right (left) turn
+                        is_turn_type(bearing_between(way_segment.heading_end, out_seg.heading_start), drive_on_right ? "right_turn" : "left_turn") &&
+                        # and there's a straight on movement between the entering and exiting road
+                        any(is_turn_type.(bearing_between.(oneway_in_seg_headings, out_seg.heading_start), "straight_on"))
+
+                        continue
+                    end
                 end
             end
 

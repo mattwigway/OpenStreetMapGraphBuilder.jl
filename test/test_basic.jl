@@ -34,7 +34,7 @@ end
         Set([
             101956, # NB JT Hwy @ Beavertail
             101907, # Beavertail @ Saguaro
-            101934  # JT Hwy merge to single carriageway 
+            7101949  # JT Hwy @ Rattlesnake
         ])
 
     # One-way streets should not have previous nodes as neighbors

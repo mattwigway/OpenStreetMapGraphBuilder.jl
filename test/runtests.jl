@@ -20,6 +20,9 @@ function get_path(G, fr_node, to_node)
     push!(path,  get_prop(G, current_vertex, :from_node))
     while current_vertex ∉ sources
         current_vertex = paths.parents[current_vertex]
+        if current_vertex == 0
+            error("Vertex has no parent. Path so far: $(reverse(path)). Dists: $(paths.dists[dests])")
+        end
         push!(path, get_prop(G, current_vertex, :from_node))
     end
 
