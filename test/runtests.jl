@@ -13,12 +13,12 @@ vertices_for_node(G, node::Tuple{Int64, Int64}) = filter(v -> get_prop(G, v, :fr
 function get_path(G, fr_node, to_node)
     # find vertices for nodes
     sources = vertices_for_node(G, fr_node)
-    # Only single destination, so we have a single shortest path
-    # this is generally fine, unless there is a turn restriction to the dest,
-    # we just avoid that in tests
-    dest = vertices_for_node(G, to_node)[1]
 
     paths = dijkstra_shortest_paths(G, sources)
+
+    # find the shortest path to any destination node
+    dests = vertices_for_node(G, to_node)
+    dest = dests[argmin(paths.dists[dests])]
 
     # back-walk the path
     current_vertex = dest
