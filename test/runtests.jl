@@ -1,4 +1,4 @@
-using Test, StreetRouter, Graphs, MetaGraphs
+using Test, StreetRouter, Graphs, MetaGraphs, Geodesy
 
 vertices_for_node(G, node::Int64) = filter(v -> get_prop(G, v, :from_node) == node, 1:nv(G))
 # allow passing (fr, to) tuple to get a specific direction of a specific node
@@ -38,5 +38,6 @@ const N = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic
 StreetRouter.compute_freeflow_weights!(N)
 
 include("test_graph_algos.jl")
+include("test_heading.jl")
 include("test_basic.jl")
 include("test_restric.jl")
