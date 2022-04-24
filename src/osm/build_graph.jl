@@ -82,13 +82,6 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
 
     scan_ways(osmpbf) do w
         if way_filter(w)
-            seg_length::Float64 = 0
-            origin_node::Int64 = w.nodes[1]
-            heading_start::Float32 = NaN32
-            heading_end::Float32 = NaN32
-            traffic_signal::Int32 = 0
-            back_traffic_signal::Int32 = 0
-
             # figure out one-way
             oneway = false
             if haskey(w.tags, "oneway")
@@ -120,6 +113,14 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
                 hwy = w.tags["highway"]
                 name = "unnamed $(hwy)"
             end
+
+            # set origin_node etc after potential node reversal
+            seg_length::Float64 = 0
+            origin_node::Int64 = w.nodes[1]
+            heading_start::Float32 = NaN32
+            heading_end::Float32 = NaN32
+            traffic_signal::Int32 = 0
+            back_traffic_signal::Int32 = 0
 
             # store number of lanes, if present
             lanes_per_direction::Union{Int64, Missing} = missing

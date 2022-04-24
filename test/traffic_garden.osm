@@ -1,14 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <osm version='0.6' generator='JOSM'>
-  <node id='3101764' version='1'  lat='33.47898416833' lon='-112.65535658639' />
-  <node id='3101765' version='1'  lat='33.47898384355' lon='-112.65494857046' />
-  <node id='3101766' version='1'  lat='33.47892217415' lon='-112.65477605246' />
-  <node id='3101767' version='1'  lat='33.47892217415' lon='-112.65460353447' />
-  <node id='3101768' version='1'  lat='33.47895415088' lon='-112.65455972037' />
-  <node id='3101769' version='1'  lat='33.47900211596' lon='-112.65456519713' />
-  <node id='3101770' version='1'  lat='33.47902952457' lon='-112.65461996475' />
-  <node id='3101771' version='1'  lat='33.47902038836' lon='-112.65475414542' />
-  <node id='3101772' version='1'  lat='33.47902038836' lon='-112.65484451199' />
   <node id='101793'  version='1' lat='33.47550029098' lon='-112.65934469461' />
   <node id='101794'  version='1' lat='33.4765383868' lon='-112.65930177927' />
   <node id='101795'  version='1' lat='33.47761226595' lon='-112.6592803216' />
@@ -81,7 +72,9 @@
   <node id='101904'  version='1' lat='33.47921409528' lon='-112.65281349689' />
   <node id='101905'  version='1' lat='33.4792073837' lon='-112.65313536197' />
   <node id='101906'  version='1' lat='33.4791313191' lon='-112.65349209577' />
-  <node id='101907'  version='1' lat='33.47913357195' lon='-112.6592803216' />
+  <node id='101907'   version='1' lat='33.47913357195' lon='-112.6592803216'>
+    <tag k='highway' v='traffic_signals' />
+  </node>
   <node id='101908'  version='1' lat='33.47912684359' lon='-112.65319571033' />
   <node id='101909'  version='1' lat='33.47912460639' lon='-112.65304818884' />
   <node id='101910'  version='1' lat='33.47911118322' lon='-112.65289530292' />
@@ -198,23 +191,15 @@
   <node id='2101781'  version='1' lat='33.48034169794' lon='-112.6542274034' />
   <node id='2101782'  version='1' lat='33.48047416033' lon='-112.65443915489' />
   <node id='2101783'  version='1' lat='33.48055510946' lon='-112.65473913616' />
-  <way id='3101794' version='1' >
-    <nd ref='3101765' />
-    <nd ref='3101766' />
-    <nd ref='3101767' />
-    <nd ref='3101768' />
-    <nd ref='3101769' />
-    <nd ref='3101770' />
-    <nd ref='3101771' />
-    <nd ref='3101772' />
-    <nd ref='3101765' />
-    <tag k='highway' v='service' />
-  </way>
-  <way id='3101803' version='1' >
-    <nd ref='3101764' />
-    <nd ref='3101765' />
-    <tag k='highway' v='service' />
-  </way>
+  <node id='3101764'  version='1' lat='33.47898416833' lon='-112.65535658639' />
+  <node id='3101765'  version='1' lat='33.47898384355' lon='-112.65494857046' />
+  <node id='3101766'  version='1' lat='33.47892217415' lon='-112.65477605246' />
+  <node id='3101767'  version='1' lat='33.47892217415' lon='-112.65460353447' />
+  <node id='3101768'  version='1' lat='33.47895415088' lon='-112.65455972037' />
+  <node id='3101769'  version='1' lat='33.47900211596' lon='-112.65456519713' />
+  <node id='3101770'  version='1' lat='33.47902952457' lon='-112.65461996475' />
+  <node id='3101771'  version='1' lat='33.47902038836' lon='-112.65475414542' />
+  <node id='3101772'  version='1' lat='33.47902038836' lon='-112.65484451199' />
   <way id='289926'  version='1'>
     <nd ref='101793' />
     <nd ref='101901' />
@@ -564,7 +549,7 @@
     <tag k='highway' v='residential' />
     <tag k='name' v='Succulent Way' />
   </way>
-  <way id='290987' version='1'>
+  <way id='290987'  version='1'>
     <nd ref='102097' />
     <nd ref='102103' />
     <nd ref='3101764' />
@@ -642,6 +627,37 @@
     <tag k='highway' v='motorway_link' />
     <tag k='oneway' v='no' />
   </way>
+  <way id='3101794'  version='1'>
+    <nd ref='3101765' />
+    <nd ref='3101766' />
+    <nd ref='3101767' />
+    <nd ref='3101768' />
+    <nd ref='3101769' />
+    <nd ref='3101770' />
+    <nd ref='3101771' />
+    <nd ref='3101772' />
+    <nd ref='3101765' />
+    <tag k='highway' v='service' />
+  </way>
+  <way id='3101803'  version='1'>
+    <nd ref='3101764' />
+    <nd ref='3101765' />
+    <tag k='highway' v='service' />
+  </way>
+  <relation id='299852'  version='1' >
+    <member type='way' ref='290246' role='from' />
+    <member type='node' ref='101907' role='via' />
+    <member type='way' ref='289926' role='to' />
+    <tag k='restriction' v='no_right_turn_on_red' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='299855' version='1' >
+    <member type='way' ref='2101834' role='from' />
+    <member type='way' ref='2101832' role='to' />
+    <member type='node' ref='2101778' role='via' />
+    <tag k='restriction' v='no_left_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
   <relation id='99779'  version='1'>
     <member type='way' ref='290921' role='from' />
     <member type='way' ref='290371' role='via' />
@@ -663,7 +679,7 @@
     <tag k='restriction' v='no_left_turn' />
     <tag k='type' v='restriction' />
   </relation>
-  <relation id='99906' version='1'>
+  <relation id='99906'  version='1'>
     <member type='way' ref='290500' role='to' />
     <member type='way' ref='290246' role='via' />
     <member type='way' ref='290438' role='from' />
