@@ -61,13 +61,15 @@ end
     @test 102028 ∈ get_neighbors(102017)
 end
 
-@testset "Correct topology" for v in 1:nv(G)
-    from_node = get_prop(G, v, :from_node)
-    to_node = get_prop(G, v, :to_node)
-    nodes = get_prop(G, v, :nodes)
-    @test nodes[1] == from_node
-    @test nodes[end] == to_node
-    for nbr in outneighbors(G, v)
-        @test get_prop(G, nbr, :from_node) == to_node
+@testset "Correct topology" begin
+    for v in 1:nv(G)
+        from_node = get_prop(G, v, :from_node)
+        to_node = get_prop(G, v, :to_node)
+        nodes = get_prop(G, v, :nodes)
+        @test nodes[1] == from_node
+        @test nodes[end] == to_node
+        for nbr in outneighbors(G, v)
+            @test get_prop(G, nbr, :from_node) == to_node
+        end
     end
 end
