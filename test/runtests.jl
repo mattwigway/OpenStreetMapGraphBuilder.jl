@@ -1,11 +1,5 @@
 using Test, StreetRouter, Graphs, MetaGraphs
 
-function get_graph() 
-    G = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"))
-    StreetRouter.compute_freeflow_weights!(G)
-    G
-end 
-
 vertices_for_node(G, node::Int64) = filter(v -> get_prop(G, v, :from_node) == node, 1:nv(G))
 # allow passing (fr, to) tuple to get a specific direction of a specific node
 vertices_for_node(G, node::Tuple{Int64, Int64}) = filter(v -> get_prop(G, v, :from_node) == node[1] && get_prop(G, v, :to_node) == node[2], 1:nv(G))
@@ -33,7 +27,12 @@ function get_path(G, fr_node, to_node)
     path
 end
 
-const G = get_graph()
+const G = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"))
+StreetRouter.compute_freeflow_weights!(G)
+
+# a graph with turn restrictions ignored
+const N = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"), turn_restrictions=false)
+StreetRouter.compute_freeflow_weights!(N)
 
 include("test_graph_algos.jl")
 include("test_basic.jl")

@@ -17,7 +17,7 @@ function default_way_filter(way::Way)::Bool
     return driveable
 end
 
-function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, remove_islands=100)
+function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, remove_islands=100, turn_restrictions=true)
     # find all nodes that occur in more than one way
     node_count = counter(Int64)
 
@@ -344,7 +344,12 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
         end
     end
 
-    process_turn_restrictions(osmpbf, G)
+    if turn_restrictions
+        process_turn_restrictions(osmpbf, G)
+    end
+
+    # do island removal after turn restrictions, since turn restrictions can create islands
+    # see https://github.com/conveyal/r5/issues/806
     if remove_islands > 0
         remove_islands_smaller_than(G, remove_islands)
     end

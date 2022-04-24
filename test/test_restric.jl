@@ -1,14 +1,15 @@
-@testset "Implied restrictions" begin
+# implied turn restrictions should be in both turn restrictions and no turn restrictions graphs
+@testset "Implied restrictions" for gr in [G, N]
     # Make sure the implied no U turn is applied at the traffic light on Wash Trl
-    fr_v = findfirst(v -> get_prop(G, v, :from_node) == 102042 && get_prop(G, v, :to_node) == 102044, 1:nv(G))
-    to_v = findfirst(v -> get_prop(G, v, :from_node) == 102044 && get_prop(G, v, :to_node) == 102042, 1:nv(G))
+    fr_v = findfirst(v -> get_prop(gr, v, :from_node) == 102042 && get_prop(gr, v, :to_node) == 102044, 1:nv(G))
+    to_v = findfirst(v -> get_prop(gr, v, :from_node) == 102044 && get_prop(gr, v, :to_node) == 102042, 1:nv(G))
 
-    paths = dijkstra_shortest_paths(G, fr_v)
+    paths = dijkstra_shortest_paths(gr, fr_v)
 
     @test paths.parents[to_v] != fr_v
 
     # make sure it is not applied in other places - U turn at Succulent Way is legal
-    paths = dijkstra_shortest_paths(G, to_v)
+    paths = dijkstra_shortest_paths(gr, to_v)
     @test paths.parents[fr_v] == to_v
 end
 
@@ -16,7 +17,15 @@ end
     # no left turn from Beavertail to Prickly Pear, need to go around the long way
     # also checks that right turn is allowed in other direction.
     @testset "No left turn" begin
-        path = [
+        # With the no turn restrictions path, we should just get the left turn
+        @test get_path(N, (101906, 102104), 3101765) == [
+            101906, # Beavertail split before Garden Pkwy
+            102104, # Beavertail and Prickly Pear
+            3101764, # Turn onto service road
+            3101765  # Circle on service road
+        ]
+
+        @test get_path(G, (101906, 102104), 3101765) == [
             101906, # Beavertail split before Garden Pkwy
             102104, # Beavertail and Prickly Pear - no left turn
             102095, # Beavertail and Succulent - can U turn here
@@ -24,7 +33,6 @@ end
             3101764, # Turn onto service road
             3101765  # Circle on service road
         ]
-        @test get_path(G, (101906, 102104), 3101765) == path
     end
 
     @testset "No right turn did not get applied to opposing left turn (ambiguous without turn angles)" begin
@@ -38,6 +46,13 @@ end
     end
 
     @testset "Only right turn works" begin
+        @test get_path(N, 102177, 102097) == [
+            102177, # Succulent at Tropical Island (should remain in graph, island removal does not remove vertices)
+            102095, # Succulent @ Beavertail
+            102097  # Succulent at Prickly Pear
+        ]
+
+        # turn restriction graph should force right turn onto Beavertail
         @test get_path(G, 102177, 102097) == [
             102177, # Succulent at Tropical Island (should remain in graph, island removal does not remove vertices)
             102095, # Succulent @ Beavertail - only right turn (can't go straight)
@@ -59,6 +74,15 @@ end
 
 @testset "Complex restrictions" begin
     @testset "No U turn with via way" begin
+        @test get_path(N, 102038, 102040) == [
+            102038, # SB JT Hwy @ Wash Trl
+            101936, # SB JT Hwy @ Beavertail
+            101956, # NB JT Hwy @ Beavertail
+            101955, # NB JT Hwy @ Tropical Island
+            102040  # NB JT Hwy @ Wash Trl
+        ]
+
+        # confirm that there's no u turn in the turn restriction graph
         @test get_path(G, 102038, 102040) == [
             102038, # SB JT Hwy @ Wash Trl
             101936, # SB JT Hwy @ Beavertail (no U turn)
@@ -71,12 +95,23 @@ end
     end
 
     @testset "No U turn with multiple via ways" begin
-        # confirm a U turn can't cut through the rest area
-        # TODO would the weights make it such that cutting through the rest area would
-        # even be a good option?
-        @test get_path(G, 101844, 101977) == [
-            101844, # WB Garden Fwy at JT Hwy offramp
-            101847, # onramp
+        # confirm we get a U turn at JT Hwy without turn restrictions
+        @test get_path(N, 101842, 101826) == [
+            101842, # WB Garden Fwy at Wash Trl onramp
+            101844, # JT Hwy exit
+            101987, # ramp split
+            101940, # merge to JT Hwy
+            101939, # exit back to Gardn Fwy
+            101969, # ramp merge
+            101825, # merge onto fwy
+            101826  # Garden Fwy EB at Wash Trl offramp
+        ]
+
+        # confirm a U turn can't happen with turn restriction graph
+        @test get_path(G, 101842, 101826) == [
+            101842, # WB Garden Fwy at Wash Trl onramp
+            101844, # JT Hwy exit
+            101847, # Merge to highway
             102012, # exit to rest area
             101849, # entrance from rest area
             101811, # roundabout
@@ -84,11 +119,24 @@ end
             101818, # roundabout -> Garden Fwy WB
             102017, # rest area entrance
             102023, # rest area exit
-            101977  # JT Hwy offramp
+            101977, # JT Hwy exit
+            101825, # merge onto fwy
+            101826  # Garden Fwy EB at Wash Trl offramp
         ]
     end
 
     @testset "No left after right" begin
+        # no turn restriction graph should allow left after right
+        @test get_path(N, 101945, 102013) == [
+            101945, # JT Hwy diverging diamond
+            101942, # Entrance ramp
+            101994, # Merge with other ramp
+            101847, # Merge to highway
+            102012, # exit to rest area
+            102013, # in rest area
+        ]
+
+        # with turn restriction, should have to go around roundabout
         @test get_path(G, 101945, 102013) == [
             101945, # JT Hwy diverging diamond
             101942, # Entrance ramp
@@ -117,25 +165,40 @@ end
     end
 
     @testset "Only left turn with via way" begin
-        # it's unclear how these should be applied, and they're actually disallowed in the OSM turn restriction
+        # it's unclear how only turns with via ways should be applied, and they're actually disallowed in the OSM turn restriction
         # specification, but my interpretation is that once you've entered the portion of the way that
         # connects to the via way(s), you must follow the restriction - see more in-depth discussion in
         # only_turn.jl comments.
 
-        # should not be allowed to leave restriction after from way
-        @test get_path(G, (101919, 101916), (101916, 101917)) == [
-            101919, # exiting NB Garden Pkwy to Beavertail
-            101916, # ramps cross in middle of intersection, but only turn
-            101903, # cross SB Garden Pkwy
-            101906, # end of ramp - No U turn
-            102104, # Prickly Pear U turn
-            101906, # back at ramps
-            101910, # ramps split
-            101915, # Cross SB Garden Pkwy
-            101916 # ramps cross
-        ]
+        @testset "should not be allowed to leave restriction after from way" begin
+            # without turn restrictions, we can
+            @test get_path(N, (101919, 101916), (101916, 101917)) == [
+                101919, # exiting NB Garden Pkwy to Beavertail
+                101916 # ramps cross in middle of intersection
+            ]
+
+            # should not be allowed to leave restriction after from way
+            @test get_path(G, (101919, 101916), (101916, 101917)) == [
+                101919, # exiting NB Garden Pkwy to Beavertail
+                101916, # ramps cross in middle of intersection, but only turn
+                101903, # cross SB Garden Pkwy
+                101906, # end of ramp - No U turn
+                102104, # Prickly Pear U turn
+                101906, # back at ramps
+                101910, # ramps split
+                101915, # Cross SB Garden Pkwy
+                101916 # ramps cross
+            ]
+
+        end
 
         @testset "should not be allowed to leave restriction after via way" begin
+            @test get_path(N, (101919, 101916), (101903, 101915)) == [
+                101919, # exiting NB Garden Pkwy to Beavertail
+                101916, # ramps cross in middle of intersection, but only turn
+                101903, # cross SB Garden Pkwy
+            ]
+
             @test get_path(G, (101919, 101916), (101903, 101915)) == [
                 101919, # exiting NB Garden Pkwy to Beavertail
                 101916, # ramps cross in middle of intersection, but only turn

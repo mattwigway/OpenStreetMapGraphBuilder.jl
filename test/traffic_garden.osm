@@ -136,15 +136,15 @@
   <node id='101996' visible='true' version='1' lat='33.48097027397' lon='-112.65772462159' />
   <node id='102012' visible='true' version='1' lat='33.48093224916' lon='-112.65801161796' />
   <node id='102013' visible='true' version='1' lat='33.48089421092' lon='-112.65809208423' />
-  <node id='102014' visible='true' version='1' lat='33.48089197377' lon='-112.65826374561' />
-  <node id='102015' visible='true' version='1' lat='33.48089421092' lon='-112.65846759349' />
+  <node id='102014' action='delete' visible='true' version='1' lat='33.48089197377' lon='-112.65826374561' />
+  <node id='102015' visible='true' version='1' lat='33.48088869178' lon='-112.65813342908' />
   <node id='102017' visible='true' version='1' lat='33.48079478466' lon='-112.65871048887' />
   <node id='102023' visible='true' version='1' lat='33.48080958717' lon='-112.65796861599' />
   <node id='102024' visible='true' version='1' lat='33.48084499361' lon='-112.65805721551' />
-  <node id='102025' visible='true' version='1' lat='33.48084723076' lon='-112.65812963516' />
-  <node id='102026' visible='true' version='1' lat='33.48084946791' lon='-112.65821546584' />
-  <node id='102027' visible='true' version='1' lat='33.48085617937' lon='-112.65836835176' />
-  <node id='102028' visible='true' version='1' lat='33.48084946791' lon='-112.65847564012' />
+  <node id='102025' action='delete' visible='true' version='1' lat='33.48084723076' lon='-112.65812963516' />
+  <node id='102026' action='delete' visible='true' version='1' lat='33.48084946791' lon='-112.65821546584' />
+  <node id='102027' action='delete' visible='true' version='1' lat='33.48085617937' lon='-112.65836835176' />
+  <node id='102028' visible='true' version='1' lat='33.48084394877' lon='-112.65812989575' />
   <node id='102029' visible='true' version='1' lat='33.48084499361' lon='-112.6586177972' />
   <node id='102034' visible='true' version='1' lat='33.47984051376' lon='-112.65869022489' />
   <node id='102035' visible='true' version='1' lat='33.47984946247' lon='-112.6582181561' />
@@ -465,7 +465,6 @@
   <way id='290700' visible='true' version='1'>
     <nd ref='102012' />
     <nd ref='102013' />
-    <nd ref='102014' />
     <nd ref='102015' />
     <nd ref='101849' />
     <tag k='highway' v='service' />
@@ -475,9 +474,6 @@
   <way id='290712' visible='true' version='1'>
     <nd ref='102023' />
     <nd ref='102024' />
-    <nd ref='102025' />
-    <nd ref='102026' />
-    <nd ref='102027' />
     <nd ref='102028' />
     <nd ref='102029' />
     <nd ref='102017' />
@@ -652,11 +648,15 @@
     <tag k='name' v='Beavertail Road' />
     <tag k='oneway' v='yes' />
   </way>
-  <relation id='599833' version='1' visible='true'>
-    <member type='way' ref='290329' role='to' />
-    <member type='way' ref='290329' role='from' />
-    <member type='node' ref='101916' role='via' />
-    <tag k='restriction' v='only_straight_on' />
+  <relation id='499892' version='1' visible='true'>
+    <member type='way' ref='290438' role='via' />
+    <member type='way' ref='290654' role='via' />
+    <member type='way' ref='290659' role='via' />
+    <member type='way' ref='290638' role='via' />
+    <member type='way' ref='290633' role='via' />
+    <member type='way' ref='290029' role='from' />
+    <member type='way' ref='289995' role='to' />
+    <tag k='restriction' v='no_u_turn' />
     <tag k='type' v='restriction' />
   </relation>
   <relation id='99779' visible='true' version='1'>
@@ -687,12 +687,7 @@
     <tag k='restriction' v='no_u_turn' />
     <tag k='type' v='restriction' />
   </relation>
-  <relation id='99952' visible='true' version='1'>
-    <member type='way' ref='290029' role='from' />
-    <member type='way' ref='290719' role='via' />
-    <member type='way' ref='290700' role='via' />
-    <member type='way' ref='290712' role='via' />
-    <member type='way' ref='289995' role='to' />
+  <relation id='99952' action='delete' visible='true' version='1'>
     <tag k='restriction' v='no_u_turn' />
     <tag k='type' v='restriction' />
   </relation>
@@ -729,6 +724,13 @@
     <member type='node' ref='101906' role='via' />
     <member type='way' ref='290433' role='to' />
     <tag k='restriction' v='no_u_turn' />
+    <tag k='type' v='restriction' />
+  </relation>
+  <relation id='599833' visible='true' version='1'>
+    <member type='way' ref='290329' role='to' />
+    <member type='way' ref='290329' role='from' />
+    <member type='node' ref='101916' role='via' />
+    <tag k='restriction' v='only_straight_on' />
     <tag k='type' v='restriction' />
   </relation>
 </osm>
