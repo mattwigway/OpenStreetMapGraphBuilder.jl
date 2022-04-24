@@ -175,7 +175,9 @@ function process_simple_restriction(restric, from, to, via, G, vertices_for_way)
 
     rtype = get_rtype(restric)
 
-    if length(matching_turns) == 1
+    if isempty(matching_turns)
+        @warn "No turns match $(restric.id)"
+    elseif length(matching_turns) == 1
         angle = get_prop(G, matching_turns[1]..., :turn_angle)
         if !is_turn_type(angle, rtype)
             @warn "Restriction $(restric.id) is nonambiguous, but indicates it should be of type $(rtype), but has bearing $(angle); including anyways"
@@ -187,7 +189,7 @@ function process_simple_restriction(restric, from, to, via, G, vertices_for_way)
         if length(matching_turns) == 1
             return TurnRestriction([matching_turns[1]...], restric.id)
         elseif isempty(matching_turns)
-            @warn "No turns match restric $(restric.id)"
+            @warn "No turns match restric $(restric.id), after filtering by turn type"
         else
             buf = IOBuffer()
             print(buf, "Restriction $(restric.id)")

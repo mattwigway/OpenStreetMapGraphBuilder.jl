@@ -47,6 +47,14 @@ end
         ]
 
     end
+
+    @testset "No right turn on red does not prevent right turn" begin
+        @test get_path(G, 101936, 101797) == [
+            101936, # Beavertail @ JT Hwy SB
+            101907, # Beavertail at Saguaro (no right turn on red)
+            101797  # Saguaro at Wash Trl
+        ]
+    end
 end
 
 @testset "Complex restrictions" begin
@@ -108,7 +116,7 @@ end
         ]
     end
 
-    @testset "Only right turn with via way" begin
+    @testset "Only left turn with via way" begin
         # it's unclear how these should be applied, and they're actually disallowed in the OSM turn restriction
         # specification, but my interpretation is that once you've entered the portion of the way that
         # connects to the via way(s), you must follow the restriction - see more in-depth discussion in
@@ -119,27 +127,33 @@ end
             101919, # exiting NB Garden Pkwy to Beavertail
             101916, # ramps cross in middle of intersection, but only turn
             101903, # cross SB Garden Pkwy
-            101906, # end of ramp - U turn to entrance
+            101906, # end of ramp - No U turn
+            102104, # Prickly Pear U turn
+            101906, # back at ramps
             101910, # ramps split
             101915, # Cross SB Garden Pkwy
             101916 # ramps cross
         ]
 
-        # should not be allowed to leave restriction after via way
-        @test get_path(G, (101919, 101916), (101903, 101915)) == [
-            101919, # exiting NB Garden Pkwy to Beavertail
-            101916, # ramps cross in middle of intersection, but only turn
-            101903, # cross SB Garden Pkwy
-            101906, # end of ramp
-            102104, # Beavertail @ prickly pear
-            102095, # Beavertail @ Succulent
-            102177, # Succulent at Tropical Island
-            102042, # Succulent @ Wash Trl
-            102044, # Wash Trl @ Traffic Light
-            102045, # Wash Trl @ Garden Fwy ramp
-            101872, # Wash Trl @ SB Garden Pkwy
-            101903 # Garden Pkwy at Beavertail WB
-        ]
-
+        @testset "should not be allowed to leave restriction after via way" begin
+            @test get_path(G, (101919, 101916), (101903, 101915)) == [
+                101919, # exiting NB Garden Pkwy to Beavertail
+                101916, # ramps cross in middle of intersection, but only turn
+                101903, # cross SB Garden Pkwy
+                101906, # end of ramp
+                102104, # Beavertail @ prickly pear
+                102095, # Beavertail @ Succulent
+                101956, # Beavertail @ JT Hwy
+                101955, # JT Hwy @ Tropical Island
+                102040, # JT Hwy @ Wash Trl
+                101954, # JT Hwy @ Garden Freeway EB onramp
+                101969, # Garden Freeway EB onramp
+                101825, # Garden Fwy EB
+                101826, # Exit to wash trail
+                101834, # Downgrades to primary
+                101872, # Garden Pkwy SB @ Wash Trl
+                101903 # Garden Pkwy at Beavertail WB
+            ]
+        end
     end
 end
