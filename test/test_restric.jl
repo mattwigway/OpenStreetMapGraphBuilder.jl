@@ -284,3 +284,29 @@ end
         end
     end
 end
+
+
+@testset "Is turn type" begin
+    # they should overlap
+    @test StreetRouter.OSM.is_turn_type(-18, "no_left_turn")
+    @test StreetRouter.OSM.is_turn_type(-18, "no_straight_on")
+
+    # but this is too far
+    @test StreetRouter.OSM.is_turn_type(-38, "no_left_turn")
+    @test !StreetRouter.OSM.is_turn_type(-38, "no_straight_on")
+
+    # again, overlap
+    @test StreetRouter.OSM.is_turn_type(-100, "no_left_turn")
+    @test StreetRouter.OSM.is_turn_type(-100, "no_u_turn")
+
+    @test StreetRouter.OSM.is_turn_type(18, "only_right_turn")
+    @test StreetRouter.OSM.is_turn_type(18, "only_straight_on")
+
+    # but this is too far
+    @test StreetRouter.OSM.is_turn_type(38, "only_right_turn")
+    @test !StreetRouter.OSM.is_turn_type(38, "only_straight_on")
+
+    # again, overlap
+    @test StreetRouter.OSM.is_turn_type(100, "only_right_turn")
+    @test StreetRouter.OSM.is_turn_type(100, "only_u_turn")
+end

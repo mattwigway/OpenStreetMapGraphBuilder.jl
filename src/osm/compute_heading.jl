@@ -26,7 +26,11 @@ end
 
 function circular_add(bearing::Real, Δ::Real)::Float32
     new_bearing = bearing + Δ
-    return convert(Float32, new_bearing % 360)::Float32
+    out = convert(Float32, new_bearing % 360)::Float32
+    if out < 0
+        out += 360
+    end
+    out
 end
 
 function bearing_between(ang1, ang2)
@@ -46,7 +50,7 @@ function bearing_between(ang1, ang2)
 end
 
 "Calculate the initial and final headings for a geometry"
-function calculate_headings_for_geom(lls::AbstractVector{LatLon{Float64}})::Tuple{Float32, Float32}
+function calculate_headings_for_geom(lls)
     initial_loc = lls[1]
     second_loc_idx = 2
     
