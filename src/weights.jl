@@ -4,7 +4,6 @@ const KMH_TO_MS = 1000 / 3600
 # tens of seconds, and the docs are simply wrong
 # https://github.com/Project-OSRM/osrm-backend/issues/5989
 const TRAFFIC_LIGHT_PENALTY_SECS = 2.0
-const BASE_TURN_PENALTY = 7.5
 # makes left turns more costly than right - for drive-on-left countries, set to
 # 1/1.075
 const TURN_BIAS = 1.075
