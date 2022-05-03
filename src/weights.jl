@@ -8,7 +8,8 @@ const BASE_TURN_PENALTY = 7.5
 # makes left turns more costly than right - for drive-on-left countries, set to
 # 1/1.075
 const TURN_BIAS = 1.075
-const TURN_PENALTY = 7.5
+const TURN_PENALTY = 10 # prefer turns at signals
+const TURN_PENALTY_SIGNAL = 5
 const U_TURN_PENALTY = 20.0
 const BASE_INTERSECTION_COST = 5.0  # This isn't in OSRM, but I think all intersection not on the motorway system should have some cost.
 
@@ -48,9 +49,9 @@ function compute_freeflow_weight(G, edge)
         if turn_angle >= 0
             # copied directly from lua code, I don't understand the math, it's a sigmoid of some sort
             # car.lua is confusing, but these values are actually in seconds
-            turn_cost += TURN_PENALTY / (1 + exp( -((13 / TURN_BIAS) *  turn_angle/180 - 6.5*TURN_BIAS)))
+            turn_cost += (traffic_signal ? TURN_PENALTY_SIGNAL : TURN_PENALTY) / (1 + exp( -((13 / TURN_BIAS) *  turn_angle/180 - 6.5*TURN_BIAS)))
         else
-            turn_cost += TURN_PENALTY / (1 + exp( -((13 * TURN_BIAS) * -turn_angle/180 - 6.5/TURN_BIAS)))
+            turn_cost += (traffic_signal ? TURN_PENALTY_SIGNAL : TURN_PENALTY) / (1 + exp( -((13 * TURN_BIAS) * -turn_angle/180 - 6.5/TURN_BIAS)))
         end
 
         if StreetRouter.OSM.is_turn_type(turn_angle, "u_turn")
@@ -64,7 +65,7 @@ end
 function compute_freeflow_weights!(G)
     for edge in edges(G)
         traversal_time, turn_cost = compute_freeflow_weight(G, edge)
-        set_prop!(G, edge, :ff_traversal_time, convert(Float64, traversal_time))
+        set_prop!(G, edge, :traversal_time, convert(Float64, traversal_time))
         set_prop!(G, edge, :turn_cost, convert(Float64, turn_cost))
         set_prop!(G, edge, :weight, traversal_time + turn_cost)
     end

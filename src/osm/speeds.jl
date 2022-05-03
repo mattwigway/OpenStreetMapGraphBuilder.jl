@@ -68,4 +68,7 @@ const DEFAULT_FREEFLOW_SPEEDS = Dict{String, Float64}(
 # removing "customers" to avoid shortcuts through parking lots
 const NON_DRIVABLE_ACCESS = Set(["no", "agricultural", "forestry", "agricultural;forestry", "forestry;agricultural", "delivery", "customers", "permit"])
 
+# called speed_multiplier in OSRM, but only applied to maxspeed
+const MAXSPEED_MULTIPLIER = 0.8
+
 default_speed_for_way(way) = haskey(way.tags, "highway") && haskey(DEFAULT_FREEFLOW_SPEEDS, way.tags["highway"]) ? getindex(DEFAULT_FREEFLOW_SPEEDS, way.tags["highway"]::String) : DEFAULT_SPEED

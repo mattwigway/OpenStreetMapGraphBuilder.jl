@@ -134,9 +134,10 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
             end
 
             # store max speed, if present
-            maxspeed::Union{Float64, Missing} = missing
-            if haskey(w.tags, "maxspeed")
-                maxspeed = parse_max_speed(w.tags["maxspeed"])
+            speed = if haskey(w.tags, "maxspeed")
+                parse_max_speed(w.tags["maxspeed"]) * MAXSPEED_MULTIPLIER
+            else
+                default_speed_for_way(w)
             end
 
             accumulated_nodes = Vector{Int64}()
@@ -169,10 +170,10 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
                         heading_end,
                         convert(Float32, seg_length),
                         oneway,
-                        w.nodes[1] ∈ traffic_signal_nodes,
-                        w.nodes[end] ∈ traffic_signal_nodes,
+                        accumulated_nodes[1] ∈ traffic_signal_nodes,
+                        accumulated_nodes[end] ∈ traffic_signal_nodes,
                         lanes_per_direction,
-                        ismissing(maxspeed) ? default_speed_for_way(w) : maxspeed,
+                        speed,
                         accumulated_nodes,
                         get_road_class(w.tags["highway"])
                     )

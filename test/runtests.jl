@@ -30,6 +30,17 @@ function get_path(G, fr_node, to_node)
     path
 end
 
+# get the edge connecting the way segment defined by from and via to the one defined by via and to (all OSM node ids)
+function get_edge(G, from, via, to)
+    for frv in vertices_for_node(G, (from, via))
+        for tov in vertices_for_node(G, (via, to))
+            if has_edge(G, frv, tov)
+                return (frv, tov)
+            end
+        end
+    end
+end
+
 const G = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"))
 StreetRouter.compute_freeflow_weights!(G)
 
@@ -37,6 +48,7 @@ StreetRouter.compute_freeflow_weights!(G)
 const N = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"), turn_restrictions=false)
 StreetRouter.compute_freeflow_weights!(N)
 
+include("test_weights.jl")
 include("test_graph_algos.jl")
 include("test_heading.jl")
 include("test_basic.jl")
