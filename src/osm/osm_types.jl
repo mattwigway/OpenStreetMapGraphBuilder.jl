@@ -40,8 +40,8 @@ mutable struct WaySegment
     heading_end::Float32
     length_m::Float32
     oneway::Bool
-    traffic_signal::Int32  # number of traffic signals on this way, _not including at first node_
-    back_traffic_signal::Int32 # number of traffic signals on this way, _not including at last node_
+    start_traffic_signal::Bool # Is there a traffic signal at the start of this way segment
+    end_traffic_signal::Bool # Is there a traffic signal at the end of this way segment
     lanes::Union{Int64, Missing}
     speed_kmh::Union{Float64, Missing}
     # can't be packed, oh well - we're not serializing anyhow

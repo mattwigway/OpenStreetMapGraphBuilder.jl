@@ -78,8 +78,6 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
         sizehint!(way_segment_names, n_ways * 2)
     end
 
-    geoms = Vector{Vector{LatLon}}()
-
     scan_ways(osmpbf) do w
         if way_filter(w)
             # figure out one-way
@@ -119,8 +117,6 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
             origin_node::Int64 = w.nodes[1]
             heading_start::Float32 = NaN32
             heading_end::Float32 = NaN32
-            traffic_signal::Int32 = 0
-            back_traffic_signal::Int32 = 0
 
             # store number of lanes, if present
             lanes_per_direction::Union{Int64, Missing} = missing
@@ -154,15 +150,6 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
 
                 push!(accumulated_nodes, this_node)
 
-                if in(this_node, traffic_signal_nodes)
-                    traffic_signal += 1
-                end
-
-                # gotta keep track of it the other way as well, b/c the traffic signals are on different nodes going the other way
-                if in(prev_node, traffic_signal_nodes)
-                    back_traffic_signal += 1
-                end
-
                 seg_length += euclidean_distance(prev_node_geom, this_node_geom)
 
                 if idx == 2
@@ -182,8 +169,8 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
                         heading_end,
                         convert(Float32, seg_length),
                         oneway,
-                        traffic_signal,
-                        back_traffic_signal,
+                        w.nodes[1] ∈ traffic_signal_nodes,
+                        w.nodes[end] ∈ traffic_signal_nodes,
                         lanes_per_direction,
                         ismissing(maxspeed) ? default_speed_for_way(w) : maxspeed,
                         accumulated_nodes,
@@ -207,8 +194,6 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
                         origin_node = this_node
                         heading_start = compute_heading(this_node_geom, node_geom[w.nodes[idx + 1]])
                         seg_length = 0
-                        traffic_signal = 0
-                        back_traffic_signal = 0
                         accumulated_nodes = Vector{Int64}()
                         push!(accumulated_nodes, this_node)
                     end
@@ -243,8 +228,8 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
                 circular_add(ws.heading_start, 180),
                 ws.length_m,
                 ws.oneway,
-                ws.back_traffic_signal,
-                ws.traffic_signal,
+                ws.end_traffic_signal,
+                ws.start_traffic_signal,
                 ws.lanes,
                 ws.speed_kmh,
                 reverse(ws.nodes),
@@ -356,7 +341,7 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
             # set the edge metadata
             set_prop!(G, srcidx, tgtidx, :length_m, way_segment.length_m)
             set_prop!(G, srcidx, tgtidx, :turn_angle, Δhdg)
-            set_prop!(G, srcidx, tgtidx, :traffic_signal, way_segment.traffic_signal)
+            set_prop!(G, srcidx, tgtidx, :traffic_signal, way_segment.end_traffic_signal)
             set_prop!(G, srcidx, tgtidx, :speed_kmh, way_segment.speed_kmh)
             set_prop!(G, srcidx, tgtidx, :lanes, way_segment.lanes)
             set_prop!(G, srcidx, tgtidx, :oneway, way_segment.oneway)

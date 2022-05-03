@@ -28,6 +28,12 @@ version = "3.43.0"
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 
+[[deps.CoordinateTransformations]]
+deps = ["LinearAlgebra", "StaticArrays"]
+git-tree-sha1 = "681ea870b918e7cff7111da58791d7f718067a19"
+uuid = "150eb455-5306-5404-9cee-2592286d6298"
+version = "0.6.2"
+
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
 git-tree-sha1 = "3daef5523dd2e769dad2365274f760ff5f282c7d"
@@ -55,6 +61,12 @@ deps = ["Pkg", "Requires", "UUIDs"]
 git-tree-sha1 = "80ced645013a5dbdc52cf70329399c35ce007fae"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 version = "1.13.0"
+
+[[deps.Geodesy]]
+deps = ["CoordinateTransformations", "Dates", "LinearAlgebra", "StaticArrays"]
+git-tree-sha1 = "ed98a4429bf0a033ccc5e036120181dd52f06d31"
+uuid = "0ef565a4-170c-5f04-8de2-149903a85f3d"
+version = "1.1.0"
 
 [[deps.Graphs]]
 deps = ["ArnoldiMethod", "Compat", "DataStructures", "Distributed", "Inflate", "LinearAlgebra", "Random", "SharedArrays", "SimpleTraits", "SparseArrays", "Statistics"]
