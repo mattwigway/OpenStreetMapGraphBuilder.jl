@@ -60,6 +60,18 @@
             @test get_prop(G, get_edge(G, 101836, 101842, 101844)..., :turn_cost) == 0
         end
 
-        # TODO traffic signal turn costs should be lower than non-traffic-signal
+        @testset "Traffic signal costs lower than non-traffic-signal" begin
+            # left turn
+            @test (
+                get_prop(G, get_edge(G, 101956, 101936, 7101949)..., :turn_cost) -
+                get_prop(G, get_edge(G, 101934, 101896, 102100)..., :turn_cost) > 1
+            )
+
+            # right turn
+            @test (
+                get_prop(G, get_edge(G, 102095, 101956, 101955)..., :turn_cost) -
+                get_prop(G, get_edge(G, 101934, 101896, 101897)..., :turn_cost) > 1
+            )
+        end
     end
 end

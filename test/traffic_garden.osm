@@ -73,7 +73,9 @@
   <node id='101893' visible='true' version='1' lat='33.47619831335' lon='-112.65269280553' />
   <node id='101894' visible='true' version='1' lat='33.47617146609' lon='-112.65322924733' />
   <node id='101895' visible='true' version='1' lat='33.47616251701' lon='-112.65451670766' />
-  <node id='101896' visible='true' version='1' lat='33.47615356792' lon='-112.65698433995' />
+  <node id='101896' visible='true' version='1' lat='33.47615356792' lon='-112.65698433995'>
+    <tag k='highway' v='traffic_signals' />
+  </node>
   <node id='101897' visible='true' version='1' lat='33.47615356792' lon='-112.65806795239' />
   <node id='101898' visible='true' version='1' lat='33.4762251606' lon='-112.65874386907' />
   <node id='101899' visible='true' version='1' lat='33.4763593967' lon='-112.65910864949' />
@@ -243,6 +245,7 @@
     <nd ref='7101961' />
     <tag k='highway' v='residential' />
     <tag k='name' v='Scorpion Lane' />
+    <tag k='maxspeed' v='30' />
   </way>
   <way id='7281490' version='1' visible='true'>
     <nd ref='7101961' />
@@ -250,12 +253,14 @@
     <tag k='highway' v='residential' />
     <tag k='name' v='Scorpion Lane' />
     <tag k='oneway' v='yes' />
+    <tag k='maxspeed' v='20 mph' />
   </way>
   <way id='7281493' version='1' visible='true'>
     <nd ref='7101965' />
     <nd ref='7101961' />
     <tag k='highway' v='residential' />
     <tag k='name' v='Jackrabbit St' />
+    <tag k='maxspeed' v='30 kph' />
   </way>
   <way id='289926' version='1' visible='true'>
     <nd ref='101793' />
