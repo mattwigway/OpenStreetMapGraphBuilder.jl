@@ -1,11 +1,9 @@
 const MILES_TO_KILOMETERS = 1.609344
 const KNOTS_TO_KMH = 1.852
-# multiply all osm-provided maxspeeds by this
-const FREEFLOW_SPEED_REDUCTION = 0.8
 
 function parse_max_speed(speed_text)::Union{Float64, Missing}
     try
-        return parse(Float64, speed_text) * FREEFLOW_SPEED_REDUCTION
+        return parse(Float64, speed_text)
     catch
         # not a raw km/hr number
         mtch = match(r"([0-9]+)(?: ?)([a-zA-Z/]+)", speed_text)
@@ -17,11 +15,11 @@ function parse_max_speed(speed_text)::Union{Float64, Missing}
             units = lowercase(mtch.captures[2])
 
             if (units == "kph" || units == "km/h" || units == "kmph")
-                return speed_scalar * FREEFLOW_SPEED_REDUCTION
+                return speed_scalar
             elseif units == "mph"
-                return speed_scalar * MILES_TO_KILOMETERS * FREEFLOW_SPEED_REDUCTION
+                return speed_scalar * MILES_TO_KILOMETERS
             elseif units == "knots"
-                return speed_scalar * KNOTS_TO_KMH * FREEFLOW_SPEED_REDUCTION
+                return speed_scalar * KNOTS_TO_KMH
             else
                 @warn "unknown speed unit $units"
                 return missing

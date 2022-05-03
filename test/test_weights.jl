@@ -73,5 +73,12 @@
                 get_prop(G, get_edge(G, 101934, 101896, 101897)..., :turn_cost) > 1
             )
         end
+
+        @testset "Maxspeed tags" begin
+            e1 = get_edge(G, 7101961, 7101960, 7101949)
+            @test get_prop(G, e1..., :speed_kmh) ≈ 30 * StreetRouter.OSM.MAXSPEED_MULTIPLIER
+            @test get_prop(G, e1..., :traversal_time) ≈ get_prop(G, e1..., :length_m) / 1000 /
+                (30 * StreetRouter.OSM.MAXSPEED_MULTIPLIER) * 3600 
+        end
     end
 end
