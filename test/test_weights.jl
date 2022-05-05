@@ -80,5 +80,19 @@
             @test get_prop(G, e1..., :traversal_time) ≈ get_prop(G, e1..., :length_m) / 1000 /
                 (30 * StreetRouter.OSM.MAXSPEED_MULTIPLIER) * 3600 
         end
+
+        @testset "Turn restrictions do not affect weights" begin
+            no_restric, with_restric = map([N, G]) do gr
+                fr = vertices_for_node(gr, (101977, 101980))
+                @test length(fr) == 1  # this is the exit ramp from Fwy to JT Hwy
+                to = vertices_for_node(gr, (102095, 102104))
+                @test length(to) == 1 # Beavertail b/w Succulent and Prickly Pear
+
+                ps = dijkstra_shortest_paths(gr, fr[1])
+                (ps.dists[to[1]])
+            end
+
+            @test no_restric ≈ with_restric
+        end
     end
 end
