@@ -4,7 +4,7 @@
 const LEFT_TURN_RANGES = [(-170, -15)]
 const STRAIGHT_RANGES = [(-30, 30)]
 const RIGHT_TURN_RANGES = [(15, 170)]
-const U_TURN_RANGES = [(-Inf32, -95), (95, Inf32)]
+const U_TURN_RANGES = [(-Inf32, -120), (120, Inf32)]
 
 # make sure we don't get any weird/unexpected restrictions, like
 # no_right_turn_on_red
