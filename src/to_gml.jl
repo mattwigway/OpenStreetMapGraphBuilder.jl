@@ -23,6 +23,11 @@ function Base.write(gml::GMLState, key::Union{String, Symbol}, val)
 end
 
 Base.write(gml::GMLState, key::Union{String, Symbol}, val::Float32) = write(gml, key, convert(Float64, val))
+function Base.write(gml::GMLState, key::Union{String, Symbol}, val::Vector{<:Any})
+    for v in val
+        write(gml, k, v)
+    end
+end
 
 function starttag(gml::GMLState, tag::String)
     write(gml, "$tag [")
@@ -35,45 +40,45 @@ function endtag(gml::GMLState, tag::String)
     write(gml, "]")
 end
 
-function to_gml(G, outfile)
-    open(outfile, "w") do f
-        gml = GMLState(f)
-        starttag(gml, "graph")
-        write(gml, "comment", "StreetRouter.jl graph")
-        write(gml, "directed", 1)
+to_gml(G, outfile::String) = open(x -> to_gml(G, x), outfile, "w")
 
-        for v in 1:nv(G)
-            starttag(gml, "node")
-            write(gml, "id", v)
-            write(gml, "label", v)
-            geom = get_prop(G, v, :geom)
-            for ll in geom
-                write(gml, "lats", ll.lat)
-            end
-            for ll in geom
-                write(gml, "lons", ll.lon)
-            end
+function to_gml(G, f::IO)
+    gml = GMLState(f)
+    starttag(gml, "graph")
+    write(gml, "comment", "StreetRouter.jl graph")
+    write(gml, "directed", 1)
 
-            # for (prop, val) in pairs(props(G, v))
-            #     if prop == :geom
-            #         val = map(ll -> (ll.lon, ll.lat), val)
-            #     end
-            #     write(gml, prop, val)
-            # end
-            endtag(gml, "node")
+    for v in 1:nv(G)
+        starttag(gml, "node")
+        write(gml, "id", v)
+        write(gml, "label", v)
+        geom = get_prop(G, v, :geom)
+        for ll in geom
+            write(gml, "lats", ll.lat)
+        end
+        for ll in geom
+            write(gml, "lons", ll.lon)
         end
 
-        for edge in edges(G)
-            starttag(gml, "edge")
-            write(gml, "source", edge.src)
-            write(gml, "target", edge.dst)
-            # for (prop, val) in pairs(props(G, edge))
-            #     write(gml, prop, val)
-            # end
-            write(gml, "weight", get_prop(G, edge, :weight))
-            write(gml, "length_m", get_prop(G, edge, :length_m))
-            endtag(gml, "edge")
-        end
-        endtag(gml, "graph")
+        # for (prop, val) in pairs(props(G, v))
+        #     if prop == :geom
+        #         val = map(ll -> (ll.lon, ll.lat), val)
+        #     end
+        #     write(gml, prop, val)
+        # end
+        endtag(gml, "node")
     end
+
+    for edge in edges(G)
+        starttag(gml, "edge")
+        write(gml, "source", edge.src)
+        write(gml, "target", edge.dst)
+        # for (prop, val) in pairs(props(G, edge))
+        #     write(gml, prop, val)
+        # end
+        write(gml, "weight", get_prop(G, edge, :weight))
+        write(gml, "length_m", get_prop(G, edge, :length_m))
+        endtag(gml, "edge")
+    end
+    endtag(gml, "graph")
 end

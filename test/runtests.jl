@@ -48,6 +48,7 @@ StreetRouter.compute_freeflow_weights!(G)
 const N = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"), turn_restrictions=false)
 StreetRouter.compute_freeflow_weights!(N)
 
+include("test_gml.jl")
 include("test_weights.jl")
 include("test_graph_algos.jl")
 include("test_heading.jl")
