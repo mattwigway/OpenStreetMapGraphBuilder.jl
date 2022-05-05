@@ -89,7 +89,11 @@
                 @test length(to) == 1 # Beavertail b/w Succulent and Prickly Pear
 
                 ps = dijkstra_shortest_paths(gr, fr[1])
-                (ps.dists[to[1]])
+
+                # make sure it actually goes through the turn restriction
+                @test 101936 ∈ get_path(gr, (101977, 101980), (102095, 102104))
+
+                ps.dists[to[1]]
             end
 
             @test no_restric ≈ with_restric
