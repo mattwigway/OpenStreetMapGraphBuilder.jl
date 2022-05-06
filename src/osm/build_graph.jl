@@ -137,7 +137,11 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
             speed = if haskey(w.tags, "maxspeed")
                 parse_max_speed(w.tags["maxspeed"]) * MAXSPEED_MULTIPLIER
             else
-                default_speed_for_way(w)
+                missing
+            end
+
+            if ismissing(speed)
+                speed = default_speed_for_way(w)
             end
 
             accumulated_nodes = Vector{Int64}()
@@ -291,7 +295,9 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
             #  +                        +
             #   \______________________/
             # That's not a U turn, but would look like one if we weren't careful.
-            if tgtseg.way_id == way_segment.way_id && tgtseg.nodes == reverse(way_segment.nodes)
+            # Check the start and end nodes anyways, to fail fast in most cases
+            if tgtseg.way_id == way_segment.way_id && tgtseg.origin_node == way_segment.destination_node && tgtseg.destination_node == way_segment.origin_node &&
+                tgtseg.nodes == reverse(way_segment.nodes)
                 # this is a u turn
                 # get the other segments in this location
                 other_segments = filter(x -> x!=tgtidx, connected_segments)
