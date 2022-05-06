@@ -82,7 +82,7 @@ function build_graph(osmpbf; way_filter=default_way_filter, save_names=true, rem
         if way_filter(w)
             for node in w.nodes
                 if !haskey(node_geom, node)
-                    @warn "Way $(way.id) references node $node which is not in OSM file"
+                    @warn "Way $(w.id) references node $node which is not in OSM file"
                     return
                 end
             end
