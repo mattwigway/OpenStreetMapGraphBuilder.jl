@@ -16,7 +16,7 @@ function parse_max_speed(speed_text)::Union{Float64, Missing}
 
             if (units == "kph" || units == "km/h" || units == "kmph")
                 return speed_scalar
-            elseif units == "mph"
+            elseif units == "mph" || units == "moh" # common error
                 return speed_scalar * MILES_TO_KILOMETERS
             elseif units == "knots"
                 return speed_scalar * KNOTS_TO_KMH
