@@ -45,7 +45,7 @@ to_gml(G, outfile::String) = open(x -> to_gml(G, x), outfile, "w")
 function to_gml(G, f::IO)
     gml = GMLState(f)
     starttag(gml, "graph")
-    write(gml, "comment", "StreetRouter.jl graph")
+    write(gml, "comment", "OpenStreetMapGraphBuilder.jl graph")
     write(gml, "directed", 1)
 
     for v in 1:nv(G)

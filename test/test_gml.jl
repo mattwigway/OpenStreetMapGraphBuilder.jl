@@ -72,7 +72,7 @@ end
 
 @testset "GML roundtrip" begin
     buf = IOBuffer()
-    StreetRouter.to_gml(G, buf)
+    OpenStreetMapGraphBuilder.to_gml(G, buf)
 
     # Read the GML back in. Can't use GraphIO as it doesn't support edge attributes
     seekstart(buf)

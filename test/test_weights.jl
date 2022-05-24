@@ -13,9 +13,9 @@
         to = vertices_for_node(G, (102044, 102045))[1]
         @test get_prop(G, fr, to, :traffic_signal)
         @test isapprox(get_prop(G, fr, to, :weight),
-            get_prop(G, fr, to, :length_m) / 1000 / StreetRouter.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
-            StreetRouter.TRAFFIC_LIGHT_PENALTY_SECS +
-            StreetRouter.BASE_INTERSECTION_COST,
+            get_prop(G, fr, to, :length_m) / 1000 / OpenStreetMapGraphBuilder.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
+            OpenStreetMapGraphBuilder.TRAFFIC_LIGHT_PENALTY_SECS +
+            OpenStreetMapGraphBuilder.BASE_INTERSECTION_COST,
             atol=0.05)
         
         # and check for back edge as well
@@ -23,9 +23,9 @@
         to = vertices_for_node(G, (102044, 102042))[1]
         @test get_prop(G, fr, to, :traffic_signal)
         @test isapprox(get_prop(G, fr, to, :weight),
-            get_prop(G, fr, to, :length_m) / 1000 / StreetRouter.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
-            StreetRouter.TRAFFIC_LIGHT_PENALTY_SECS +
-            StreetRouter.BASE_INTERSECTION_COST,
+            get_prop(G, fr, to, :length_m) / 1000 / OpenStreetMapGraphBuilder.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
+            OpenStreetMapGraphBuilder.TRAFFIC_LIGHT_PENALTY_SECS +
+            OpenStreetMapGraphBuilder.BASE_INTERSECTION_COST,
             atol=0.05)
 
         # but confirm not for other direction
@@ -33,16 +33,16 @@
         to = vertices_for_node(G, (102042, 102040))[1]
         @test !get_prop(G, fr, to, :traffic_signal)
         @test isapprox(get_prop(G, fr, to, :weight),
-            get_prop(G, fr, to, :length_m) / 1000 / StreetRouter.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
-            StreetRouter.BASE_INTERSECTION_COST,
+            get_prop(G, fr, to, :length_m) / 1000 / OpenStreetMapGraphBuilder.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
+            OpenStreetMapGraphBuilder.BASE_INTERSECTION_COST,
             atol=0.05)
 
         fr = vertices_for_node(G, (102044, 102045))[1]
         to = vertices_for_node(G, (102045, 101872))[1]
         @test !get_prop(G, fr, to, :traffic_signal)
         @test isapprox(get_prop(G, fr, to, :weight),
-            get_prop(G, fr, to, :length_m) / 1000 / StreetRouter.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
-            StreetRouter.BASE_INTERSECTION_COST,
+            get_prop(G, fr, to, :length_m) / 1000 / OpenStreetMapGraphBuilder.OSM.DEFAULT_FREEFLOW_SPEEDS["residential"] * 3600 +
+            OpenStreetMapGraphBuilder.BASE_INTERSECTION_COST,
             atol=0.05)
     end
 
@@ -76,9 +76,9 @@
 
         @testset "Maxspeed tags" begin
             e1 = get_edge(G, 7101961, 7101960, 7101949)
-            @test get_prop(G, e1..., :speed_kmh) ≈ 30 * StreetRouter.OSM.MAXSPEED_MULTIPLIER
+            @test get_prop(G, e1..., :speed_kmh) ≈ 30 * OpenStreetMapGraphBuilder.OSM.MAXSPEED_MULTIPLIER
             @test get_prop(G, e1..., :traversal_time) ≈ get_prop(G, e1..., :length_m) / 1000 /
-                (30 * StreetRouter.OSM.MAXSPEED_MULTIPLIER) * 3600 
+                (30 * OpenStreetMapGraphBuilder.OSM.MAXSPEED_MULTIPLIER) * 3600 
         end
 
         @testset "Turn restrictions do not affect weights" begin

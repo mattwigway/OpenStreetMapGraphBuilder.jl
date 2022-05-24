@@ -30,12 +30,12 @@
 
     # there should be exactly one acyclic path from 5 to 3 since 7 is not in the part of the
     # graph we search
-    @test StreetRouter.OSM.find_paths(exg, Set([5]), Set([6]), Set(1:6)) == [
+    @test OpenStreetMapGraphBuilder.OSM.find_paths(exg, Set([5]), Set([6]), Set(1:6)) == [
         [5, 3, 4, 6]
     ]
 
     # There should be four acyclic paths from (1, 2) to (5, 6)
-    @test Set(StreetRouter.OSM.find_paths(exg, Set([1, 2]), Set([5, 6]), Set(1:6))) == Set([
+    @test Set(OpenStreetMapGraphBuilder.OSM.find_paths(exg, Set([1, 2]), Set([5, 6]), Set(1:6))) == Set([
         [1, 3, 5],
         [1, 3, 4, 6],
         [2, 4, 6],

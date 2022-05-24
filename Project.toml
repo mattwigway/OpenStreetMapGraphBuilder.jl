@@ -1,5 +1,5 @@
-name = "StreetRouter"
-uuid = "934266ce-e2c2-4961-8b4e-85fa24d5df39"
+name = "OpenStreetMapGraphBuilder"
+uuid = "dabe359c-6b86-4000-b65e-09ab41f25eb9"
 authors = ["Matthew Wigginton Bhagat-Conway"]
 
 [deps]

@@ -53,7 +53,7 @@ function compute_freeflow_weight(G, edge)
             turn_cost += (traffic_signal ? TURN_PENALTY_SIGNAL : TURN_PENALTY) / (1 + exp( -((13 * TURN_BIAS) * -turn_angle/180 - 6.5/TURN_BIAS)))
         end
 
-        if StreetRouter.OSM.is_turn_type(turn_angle, "u_turn")
+        if OpenStreetMapGraphBuilder.OSM.is_turn_type(turn_angle, "u_turn")
             turn_cost += U_TURN_PENALTY
         end
     end

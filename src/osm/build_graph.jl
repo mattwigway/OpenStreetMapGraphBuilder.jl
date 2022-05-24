@@ -1,3 +1,5 @@
+
+
 function default_way_filter(way::Way)::Bool
     if !haskey(way.tags, "highway") || !haskey(DEFAULT_FREEFLOW_SPEEDS, way.tags["highway"])
         return false  # footway etc

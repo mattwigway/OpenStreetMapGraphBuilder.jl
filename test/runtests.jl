@@ -1,4 +1,4 @@
-using Test, StreetRouter, Graphs, MetaGraphs, Geodesy
+using Test, OpenStreetMapGraphBuilder, Graphs, MetaGraphs, Geodesy
 
 vertices_for_node(G, node::Int64) = filter(v -> get_prop(G, v, :from_node) == node, 1:nv(G))
 # allow passing (fr, to) tuple to get a specific direction of a specific node
@@ -41,12 +41,12 @@ function get_edge(G, from, via, to)
     end
 end
 
-const G = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"))
-StreetRouter.compute_freeflow_weights!(G)
+const G = OpenStreetMapGraphBuilder.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"))
+OpenStreetMapGraphBuilder.compute_freeflow_weights!(G)
 
 # a graph with turn restrictions ignored
-const N = StreetRouter.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"), turn_restrictions=false)
-StreetRouter.compute_freeflow_weights!(N)
+const N = OpenStreetMapGraphBuilder.OSM.build_graph(Base.joinpath(Base.source_dir(), "traffic_garden.osm.pbf"), turn_restrictions=false)
+OpenStreetMapGraphBuilder.compute_freeflow_weights!(N)
 
 include("test_gml.jl")
 include("test_weights.jl")
